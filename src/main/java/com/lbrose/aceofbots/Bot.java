@@ -1,5 +1,6 @@
 package com.lbrose.aceofbots;
 
+import com.lbrose.poker.Deck;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
@@ -14,6 +15,8 @@ import java.util.EnumSet;
 public class Bot {
     public static void main(String[] args) {
         if (args.length == 0) System.exit(456); // No token provided
+
+        Deck cards = new Deck();
 
         EnumSet<GatewayIntent> intents = EnumSet.allOf(GatewayIntent.class); // Intents.ALL
 

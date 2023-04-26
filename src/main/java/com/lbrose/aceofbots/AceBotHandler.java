@@ -2,7 +2,6 @@ package com.lbrose.aceofbots;
 
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
-import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 
@@ -26,9 +25,7 @@ public class AceBotHandler {
                         Button.danger("fold", "fold")
                 )
                 .addActionRow(
-                        Button.secondary("allIn", "all in"),
-                        Button.secondary("up", Emoji.fromUnicode("U+1F53A")),
-                        Button.secondary("down", Emoji.fromUnicode("U+1F53B"))
+                        Button.secondary("allIn", "all in")
                 )
                 .queue();
     }
