@@ -11,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
  * AceBotListener
  */
 public class AceBotListener extends ListenerAdapter {
-    private AceBotHandler handler; // instance of AceBotHandler to handle events
+    private final AceBotHandler handler; // instance of AceBotHandler to handle events
 
     public AceBotListener() {
         handler = new AceBotHandler(); // initialize handler
@@ -34,6 +34,7 @@ public class AceBotListener extends ListenerAdapter {
     public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
         switch (event.getName()) {
             case "play" -> handler.play(event);
+            case "join" -> handler.addPlayer(event);
             default -> event.reply("Not yet implemented").queue();
         }
 
@@ -41,7 +42,13 @@ public class AceBotListener extends ListenerAdapter {
 
     @Override
     public void onButtonInteraction(ButtonInteractionEvent event) {
-        event.reply("Button pressed!").queue();
-
+        switch (event.getComponentId()) {
+            case "start" -> event.reply("game starting...").queue();
+            case "settings" -> event.reply("not implemented yet").queue();
+            case "checkCall" -> event.reply("check/call").queue();
+            case "raise" -> event.reply("raise").queue();
+            case "fold" -> event.reply("fold").queue();
+            case "allIn" -> event.reply("all in").queue();
+        }
     }
 }

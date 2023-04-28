@@ -16,8 +16,6 @@ public class Bot {
     public static void main(String[] args) {
         if (args.length == 0) System.exit(456); // No token provided
 
-        Deck cards = new Deck();
-
         EnumSet<GatewayIntent> intents = EnumSet.allOf(GatewayIntent.class); // Intents.ALL
 
         // Create the JDABuilder instance
@@ -29,7 +27,7 @@ public class Bot {
         // Set up slash commands globally
         jda.updateCommands().addCommands(
                 Commands.slash("play", "Play a game of poker!"),
-                Commands.slash("test", "test")
+                Commands.slash("join", "Join the current game")
         ).queue();
     }
 }
