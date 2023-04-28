@@ -22,7 +22,7 @@ public class AceBotHandler {
 
         MessageEmbed embed = builder.build();
 
-        event.getChannel().sendMessageEmbeds(embed)
+        event.reply("").setEmbeds(embed).setEphemeral(false)
                 .addActionRow(
                         Button.success("start", "start"),
                         Button.primary("settings", "settings")
@@ -36,9 +36,13 @@ public class AceBotHandler {
             return;
         }
 
-        String playerId = event.getUser().getId();
-        game.addPlayer(playerId);
-        event.reply("Added player " + event.getUser().getName())
+        boolean added = game.addPlayer(event.getUser().getId());
+
+        if (!added) {
+            event.reply("already joined or game full").setEphemeral(true).queue();
+            return;
+        }
+        event.reply("Added player " + event.getUser().getName()).setEphemeral(true)
                 .addActionRow(
                         Button.primary("checkCall", "check/call"),
                         Button.success("raise", "raise"),

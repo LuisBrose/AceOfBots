@@ -32,9 +32,24 @@ public class Game {
 
     }
 
+    /** Checks if a player has already joined the game
+     * @param playerId the id of the player
+     * @return true if player is in the game
+     */
+    public Boolean hasJoined(String playerId) {
+        for (Player player : players) {
+            if (player.getId().equals(playerId)) return true;
+        }
+        return false;
+    }
+
+    /** Adds a player to the game
+     * @param playerId the id of the player
+     * @return true if player was added
+     */
     public Boolean addPlayer(String playerId) {
         Player player = new Player(playerId);
-        if(players.size()<8)return players.add(player);
+        if(players.size()<8 && !hasJoined(playerId))return players.add(player);
         return false;
     }
 

@@ -16,4 +16,7 @@ public class Player {
         return hand;
     }
 
+    public String getId() {
+        return id;
+    }
 }
