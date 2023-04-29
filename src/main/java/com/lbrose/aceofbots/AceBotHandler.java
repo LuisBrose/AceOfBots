@@ -2,6 +2,8 @@ package com.lbrose.aceofbots;
 
 import com.lbrose.poker.Game;
 import com.lbrose.poker.Player;
+import com.lbrose.poker.PlayerStatus;
+import com.lbrose.poker.Round;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -54,7 +56,11 @@ public class AceBotHandler {
                 .queue();
     }
 
-    public void updateRound(String round) {
+    public void updateRound(Round round) {
         //do something
+    }
+
+    public PlayerStatus getPlayerAction(Player player)  {
+        return PlayerStatus.WAITING;
     }
 }
