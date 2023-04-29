@@ -47,10 +47,8 @@ public class AceBotHandler {
         event.reply("Added player " + event.getUser().getName()).setEphemeral(true)
                 .addActionRow(
                         Button.primary("checkCall", "check/call"),
+                        Button.danger("fold", "fold"),
                         Button.success("raise", "raise"),
-                        Button.danger("fold", "fold")
-                )
-                .addActionRow(
                         Button.secondary("allIn", "all in")
                 )
                 .queue();
