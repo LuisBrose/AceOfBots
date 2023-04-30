@@ -50,12 +50,24 @@ public class HandEvaluator {
      * Can be used to break ties between hands of the same type. (e.g. two players both have a pair of Aces)
      *
      * @param hand The hand to break the tie for.
+     * @param suit The suit of the hand. Only used for flushes and straight flushes.
      * @return A double representing the tiebreaker score. The higher the score, the better the hand. Ranges from 0.0017 to 0.0095.
      */
-    public static double tieBreaker(Card[] hand) {
+    public static double tieBreaker(Card[] hand, String... suit) {
         double tieScore = 0.0;
-        for (Card card : hand) {
-            tieScore += card.value() / 10000.0;
+        if (suit.length == 0) { // If the hand is not a flush, just add the value of the cards
+            for (Card card : hand) {
+                tieScore += card.value() / 10000.0;
+            }
+        } else { // If the hand is a flush, add the value of the cards in the flush suit
+            Arrays.sort(hand, Comparator.comparingInt(Card::value).reversed());
+            int count = 0;
+            for (Card card : hand) {
+                if (card.suit().equals(suit[0]) && count < 5) {
+                    count++;
+                    tieScore += card.value() / 100.0;
+                }
+            }
         }
         return tieScore;
     }
@@ -93,6 +105,34 @@ public class HandEvaluator {
         return 0.0;
     }
 
+
+    /**
+     * @param cards       The hand to check.
+     * @param checkResult The value of the straight in the hand.
+     * @return True if the straight is suited, false otherwise.
+     */
+    public static boolean straightIsSuited(Card[] cards, double checkResult) {
+        Arrays.sort(cards, Comparator.comparing(Card::suit).thenComparingInt(Card::value));
+
+        int count = 1;
+        for (int i = 0; i < cards.length; i++) {
+            if (cards[i].value() == cards[i + 1].value() - 1
+                    && cards[i].suit().equals(cards[i + 1].suit())) {
+                count++;
+                if (count == 5) return true;
+                if (count == 4) {
+                    if (cards[i + 1].value() == 14 && cards[0].value() == 2) {
+                        // Wheel straight
+                        return true;
+                    }
+                }
+            } else if (cards[i].value() != cards[i + 1].value() && count < 4) {
+                count = 1;
+            }
+        }
+        return false;
+    }
+
     /**
      * Checks if the given hand contains a flush, straight flush or royal flush.
      *
@@ -102,7 +142,7 @@ public class HandEvaluator {
      * @return The value of the flush, straight flush or royal flush if it exists, 0.0 otherwise.
      */
     public static double checkSFlush(Card[] cards, Map<String, Integer> suitFreq, double checkResult) {
-        if (suitFreq.containsValue(5) && checkResult != 0.0) { // Straight Flush
+        if (suitFreq.containsValue(5) && checkResult != 0.0 && straightIsSuited(cards, checkResult)) { // Straight Flush
             if (checkResult == 5.14) { // Royal Flush
                 return 10.0;
             }
@@ -110,15 +150,17 @@ public class HandEvaluator {
         }
         for (Map.Entry<String, Integer> entry : suitFreq.entrySet()) {
             if (entry.getValue() == 5) {
-                return 6.0 + tieBreaker(cards); // Flush
+                return 6.0 + tieBreaker(cards, entry.getKey()); // Flush
             }
         }
         return 0.0;
     }
 
-    /**Gets the value of the rank that occurs the given number of times.
-     * @param rankFreq The frequency of each rank in the hand.
-     * @param freq The number of times the rank occurs.
+    /**
+     * Gets the value of the rank that occurs the given number of times.
+     *
+     * @param rankFreq  The frequency of each rank in the hand.
+     * @param freq      The number of times the rank occurs.
      * @param skipFirst Whether to skip the first occurrence of the rank with our desired frequency.
      * @return The value of the rank that occurs the given number of times.
      */
@@ -135,27 +177,28 @@ public class HandEvaluator {
         return 0;
     }
 
-    /**Checks if the given hand contains a four of a kind, full house, three of a kind, two pair or pair.
-     * @param cards The hand to check.
+    /**
+     * Checks if the given hand contains a four of a kind, full house, three of a kind, two pair or pair.
+     *
+     * @param cards    The hand to check.
      * @param rankFreq The frequency of each rank in the hand.
      * @return The value of the four of a kind, full house, three of a kind, two pair or pair if it exists, high card otherwise.
      */
     public static double checkMultiples(Card[] cards, Map<String, Integer> rankFreq) {
         if (rankFreq.containsValue(4)) { // Four of a kind
-            return 8.0 + getRankAsValueFromFreq(rankFreq, 4)/100.0;
+            return 8.0 + getRankAsValueFromFreq(rankFreq, 4) / 100.0;
         }
         if (rankFreq.containsValue(3) && rankFreq.containsValue(2)) { // Full House
-            return 7.0 + getRankAsValueFromFreq(rankFreq, 3)/100.0 + getRankAsValueFromFreq(rankFreq, 2)/10000.0;
+            return 7.0 + getRankAsValueFromFreq(rankFreq, 3) / 100.0 + getRankAsValueFromFreq(rankFreq, 2) / 10000.0;
         }
         if (rankFreq.containsValue(3)) { // Three of a kind
-            return 4.0 + getRankAsValueFromFreq(rankFreq, 3)/100.0;
+            return 4.0 + getRankAsValueFromFreq(rankFreq, 3) / 100.0;
         }
         if (rankFreq.containsValue(2)) { // Two Pair / Pair
             if (getRankAsValueFromFreq(rankFreq, 2, false) != getRankAsValueFromFreq(rankFreq, 2, true)) { // Two Pair
-                return 3.0 + Math.max(getRankAsValueFromFreq(rankFreq, 2, false), getRankAsValueFromFreq(rankFreq, 2, true))/100.0;
-            }
-            else { // Pair
-                return 2.0 + getRankAsValueFromFreq(rankFreq, 2)/100.0;
+                return 3.0 + Math.max(getRankAsValueFromFreq(rankFreq, 2, false), getRankAsValueFromFreq(rankFreq, 2, true)) / 100.0;
+            } else { // Pair
+                return 2.0 + getRankAsValueFromFreq(rankFreq, 2) / 100.0;
             }
         }
         return 1.0 + tieBreaker(cards);
