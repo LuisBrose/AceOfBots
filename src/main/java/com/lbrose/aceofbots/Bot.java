@@ -26,7 +26,7 @@ public class Bot {
 
         // Set up slash commands globally
         jda.updateCommands().addCommands(
-                Commands.slash("play", "Play a game of poker!"),
+                Commands.slash("start", "Play a game of poker!"),
                 Commands.slash("join", "Join the current game")
         ).queue();
     }

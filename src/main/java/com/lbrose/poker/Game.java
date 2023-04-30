@@ -16,9 +16,9 @@ public class Game {
     private int totalPot = 0;
     private int currentBet = 0;
 
-    public Game(IGame botHandler) {
+    public Game(IGame frontEnd) {
         this.deck = new Deck();
-        this.frontEnd = botHandler;
+        this.frontEnd = frontEnd;
         Collections.shuffle(players);
     }
 

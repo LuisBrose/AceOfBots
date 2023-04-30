@@ -33,7 +33,7 @@ public class AceBotListener extends ListenerAdapter {
     @Override
     public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
         switch (event.getName()) {
-            case "play" -> handler.play(event);
+            case "start" -> handler.menu(event);
             case "join" -> handler.addPlayer(event);
             default -> event.reply("Not yet implemented").queue();
         }
@@ -43,7 +43,7 @@ public class AceBotListener extends ListenerAdapter {
     @Override
     public void onButtonInteraction(ButtonInteractionEvent event) {
         switch (event.getComponentId()) {
-            case "start" -> event.reply("game starting...").queue();
+            case "start" -> handler.startGame(event);
             case "settings" -> event.reply("not implemented yet").queue();
             case "checkCall" -> event.reply("check/call").queue();
             case "raise" -> event.reply("raise").queue();
