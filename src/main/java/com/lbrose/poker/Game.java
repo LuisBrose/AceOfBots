@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 public class Game {
-    private final AceBotHandler bot;
+    private final IGame frontEnd;
 
     private ArrayList<Player> players = new ArrayList<>();
     private Deck deck;
@@ -16,9 +16,9 @@ public class Game {
     private int totalPot = 0;
     private int currentBet = 0;
 
-    public Game(AceBotHandler botHandler) {
+    public Game(IGame botHandler) {
         this.deck = new Deck();
-        this.bot = botHandler;
+        this.frontEnd = botHandler;
         Collections.shuffle(players);
     }
 
@@ -65,7 +65,7 @@ public class Game {
                 PlayerStatus currentStatus = player.getStatus();
 
                 if (currentStatus != PlayerStatus.FOLD && currentStatus != PlayerStatus.ALL_IN) {
-                    player.setStatus(bot.getPlayerAction(player));
+                    player.setStatus(frontEnd.getPlayerAction(player));
                 }
             }
         }
@@ -102,7 +102,7 @@ public class Game {
     }
 
     public void updateRound(Round round) {
-        bot.updateRound(round);
+        frontEnd.updateRound(round);
     }
 
 }

@@ -1,9 +1,6 @@
 package com.lbrose.aceofbots;
 
-import com.lbrose.poker.Game;
-import com.lbrose.poker.Player;
-import com.lbrose.poker.PlayerStatus;
-import com.lbrose.poker.Round;
+import com.lbrose.poker.*;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -11,7 +8,7 @@ import net.dv8tion.jda.api.interactions.components.buttons.Button;
 
 import java.awt.*;
 
-public class AceBotHandler {
+public class AceBotHandler implements IGame {
     private Game game = null;
 
     public void play(SlashCommandInteractionEvent event) {
@@ -54,11 +51,28 @@ public class AceBotHandler {
                 .queue();
     }
 
-    public void updateRound(Round round) {
-        //do something
+    @Override
+    public PlayerStatus getPlayerAction(Player player) {
+        return null;
     }
 
-    public PlayerStatus getPlayerAction(Player player)  {
-        return PlayerStatus.WAITING;
+    @Override
+    public void updateTotalPot(int totalPot) {
+
+    }
+
+    @Override
+    public void updateCommunityCards(Card[] communityCards) {
+
+    }
+
+    @Override
+    public void updateRound(Round round) {
+
+    }
+
+    @Override
+    public void updatePlayer(Player player) {
+
     }
 }

@@ -7,14 +7,13 @@ public record Card(String suit, String rank, int value) {
     public static final String[] SUITS = {"♠", "♣", "♥", "♦"};
     public static final String[] RANKS = {"2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"};
 
-    public static int mapSuit(String suit) {
-        return switch (suit) {
-            case "♠" -> 1;
-            case "♣" -> 2;
-            case "♥" -> 3;
-            case "♦" -> 4;
-            default -> 0;
-        };
+    public static int mapRankToValue(String rank) {
+        for (int i = 0; i < RANKS.length; i++) {
+            if (RANKS[i].equals(rank)) {
+                return i + 2;
+            }
+        }
+        return 0;
     }
 
     public static boolean containsValue(Card[] cards, int value) {
