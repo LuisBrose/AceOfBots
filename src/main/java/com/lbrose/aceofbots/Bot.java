@@ -16,11 +16,11 @@ import java.util.EnumSet;
 public class Bot {
     public static void main(String[] args) {
         File[] images = new File[5];
-        images[0] = new File("C:\\Users\\luisb\\OneDrive\\Bilder\\PNG-cards-1.3\\PNG-cards-1.3\\2_of_clubs.png");
+        images[0] = new File("C:\\Users\\luisb\\OneDrive\\Bilder\\PNG-cards-1.3\\PNG-cards-1.3\\ace_of_spades.png");
         images[1] = new File("C:\\Users\\luisb\\OneDrive\\Bilder\\PNG-cards-1.3\\PNG-cards-1.3\\2_of_clubs.png");
-        images[2] = new File("C:\\Users\\luisb\\OneDrive\\Bilder\\PNG-cards-1.3\\PNG-cards-1.3\\2_of_clubs.png");
-        images[3] = new File("C:\\Users\\luisb\\OneDrive\\Bilder\\PNG-cards-1.3\\PNG-cards-1.3\\2_of_clubs.png");
-        images[4] = new File("C:\\Users\\luisb\\OneDrive\\Bilder\\PNG-cards-1.3\\PNG-cards-1.3\\2_of_clubs.png");
+        images[2] = new File("C:\\Users\\luisb\\OneDrive\\Bilder\\PNG-cards-1.3\\PNG-cards-1.3\\king_of_hearts2.png");
+        images[3] = new File("C:\\Users\\luisb\\OneDrive\\Bilder\\PNG-cards-1.3\\PNG-cards-1.3\\queen_of_spades2.png");
+        images[4] = new File("C:\\Users\\luisb\\OneDrive\\Bilder\\PNG-cards-1.3\\PNG-cards-1.3\\10_of_clubs.png");
         ImageMerger merger = new ImageMerger(images);
         merger.mergeImages("C:\\Users\\luisb\\OneDrive\\Bilder\\PNG-cards-1.3\\PNG-cards-1.3\\test.png", 100);
 
