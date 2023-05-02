@@ -31,8 +31,8 @@ public record Card(String suit, String rank, int value) {
         return Integer.compare(this.value, value);
     }
 
-    private File getCardImage() {
-        return new File("images/playingCards" + rank + suit + ".png");
+    public File getAsImage() {
+        return new File("images/playingCards/" + rank + suit + ".png");
     }
 
     @Override

@@ -1,23 +1,23 @@
 package com.lbrose.aceofbots;
 
+import com.lbrose.mergeImages.ImageMerger;
 import com.lbrose.poker.*;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.entities.channel.unions.MessageChannelUnion;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.interactions.InteractionHook;
-import net.dv8tion.jda.api.interactions.components.LayoutComponent;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
-import net.dv8tion.jda.api.requests.restaction.interactions.ReplyCallbackAction;
 import net.dv8tion.jda.api.utils.FileUpload;
 
 import java.io.File;
-import java.util.ArrayList;
 
 public class AceBotHandler implements IGame {
     private Game game = null;
     private String gameMessageId = null;
+    private MessageChannelUnion channel = null;
 
     public void menu(SlashCommandInteractionEvent event) {
         if (game != null) {
@@ -40,24 +40,22 @@ public class AceBotHandler implements IGame {
                         Button.primary("settings", "settings")
                 )
                 .complete();
+        channel = event.getChannel();
         gameMessageId = table.retrieveOriginal().complete().getId();
     }
 
     public void startGame(ButtonInteractionEvent event) {
-        FileUpload fileUpload = FileUpload.fromData(new File("C:\\Users\\luisb\\OneDrive\\Bilder\\PNG-cards-1.3\\PNG-cards-1.3\\test.png")).setName("output.png");
-
         EmbedBuilder builder = new EmbedBuilder();
         builder.setTitle("AceOfBots - Poker")
-                .setDescription("River - betting round 4/4 - total pot: 1250 chips - 3 players remaining")
+                .setDescription("")
                 .setColor(0x15683f)
-                .setThumbnail("https://cdn.discordapp.com/attachments/1096207304946368523/1102299179012857928/74661ed1-54cd-4e3f-9504-1be41e6d3f12.jpg")
-                .setImage("attachment://" + fileUpload.getName());
+                .setThumbnail("https://cdn.discordapp.com/attachments/1096207304946368523/1102299179012857928/74661ed1-54cd-4e3f-9504-1be41e6d3f12.jpg");
 
 
         MessageEmbed embed = builder.build();
 
         Message message = event.getChannel().retrieveMessageById(gameMessageId).complete();
-        message.editMessage(" ").setEmbeds(embed).setComponents().setAttachments(fileUpload).queue();
+        message.editMessage(" ").setEmbeds(embed).setComponents().queue();
         event.getInteraction().deferEdit().queue();
 
         game.start();
@@ -67,6 +65,7 @@ public class AceBotHandler implements IGame {
         if (game == null) {
             event.reply("No game in progress").queue();
             return;
+
         }
 
         boolean added = game.addPlayer(event.getUser().getId());
@@ -97,7 +96,27 @@ public class AceBotHandler implements IGame {
 
     @Override
     public void updateCommunityCards(Card[] communityCards) {
+        File[] images = new File[communityCards.length];
+        for (int i = 0; i < communityCards.length; i++) {
+            images[i] = communityCards[i].getAsImage();
+        }
+        ImageMerger merger = new ImageMerger(images);
+        merger.mergeImages("images/mergeOutput/community.png", 100);
 
+        FileUpload fileUpload = FileUpload.fromData(new File("images/mergeOutput/community.png")).setName("community.png");
+
+        EmbedBuilder builder = new EmbedBuilder();
+        builder.setTitle("AceOfBots - Poker")
+                .setDescription("River - betting round 4/4 - total pot: 1250 chips - 3 players remaining")
+                .setColor(0x15683f)
+                .setThumbnail("https://cdn.discordapp.com/attachments/1096207304946368523/1102299179012857928/74661ed1-54cd-4e3f-9504-1be41e6d3f12.jpg")
+                .setImage("attachment://" + fileUpload.getName());
+
+
+        MessageEmbed embed = builder.build();
+
+        Message message = channel.retrieveMessageById(gameMessageId).complete();
+        message.editMessage(" ").setEmbeds(embed).setComponents().setAttachments(fileUpload).queue();
     }
 
     @Override

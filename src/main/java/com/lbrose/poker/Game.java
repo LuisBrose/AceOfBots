@@ -3,6 +3,7 @@ package com.lbrose.poker;
 import com.lbrose.aceofbots.AceBotHandler;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 
 public class Game {
@@ -40,10 +41,12 @@ public class Game {
             player.setHand(deck.drawCard(), deck.drawCard());
         }
         communityCards = deck.getCommunityCards();
-
         playRound(Round.PREFLOP);
+        frontEnd.updateCommunityCards(Arrays.copyOfRange(communityCards, 0, 3));
         playRound(Round.FLOP);
+        frontEnd.updateCommunityCards(Arrays.copyOfRange(communityCards, 0, 4));
         playRound(Round.TURN);
+        frontEnd.updateCommunityCards(Arrays.copyOfRange(communityCards, 0, 5));
         playRound(Round.RIVER);
         playRound(Round.SHOWDOWN);
 
@@ -62,9 +65,10 @@ public class Game {
             for (int i = dealer; i < players.size() + dealer; i++) {
                 int pIndex = i % players.size();
                 Player player = players.get(pIndex);
-                PlayerStatus currentStatus = player.getStatus();
 
-                if (currentStatus != PlayerStatus.FOLD && currentStatus != PlayerStatus.ALL_IN) {
+                PlayerStatus currentStatus = player.getStatus();
+                if (currentStatus == PlayerStatus.WAITING){
+                    bettingFinished = false;
                     player.setStatus(frontEnd.getPlayerAction(player));
                 }
             }
