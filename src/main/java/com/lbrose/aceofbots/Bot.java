@@ -15,12 +15,10 @@ import java.util.EnumSet;
  */
 public class Bot {
     public static void main(String[] args) {
-        if (args.length == 0) System.exit(456); // No token provided
-
         EnumSet<GatewayIntent> intents = EnumSet.allOf(GatewayIntent.class); // Intents.ALL
 
         // Create the JDABuilder instance
-        JDA jda = JDABuilder.createDefault(args[0], intents)
+        JDA jda = JDABuilder.createDefault(System.getenv("BOT_TOKEN"), intents)
                 .setActivity(Activity.competing("/play"))
                 .addEventListeners(new AceBotListener())
                 .build();
