@@ -7,7 +7,7 @@ import java.util.Objects;
  * Represents a standard playing card. It contains the suit, rank and value of the card as well as all possible suits and ranks.
  */
 public record Card(String suit, String rank, int value) {
-    public static final String[] SUITS = {"♤", "♧", "♥", "♦"};
+    public static final String[] SUITS = {"S", "C", "H", "D"};
     public static final String[] RANKS = {"2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"};
 
     public static int mapRankToValue(String rank) {
@@ -30,6 +30,24 @@ public record Card(String suit, String rank, int value) {
 
     private int compareValueTo(int value) {
         return Integer.compare(this.value, value);
+    }
+
+    public char suitAsIcon() {
+        switch (suit) {
+            case "S" -> {
+                return '♤';
+            }
+            case "C" -> {
+                return '♧';
+            }
+            case "H" -> {
+                return '♥';
+            }
+            case "D" -> {
+                return '♦';
+            }
+        }
+        return ' ';
     }
 
     public File getAsImage() {
