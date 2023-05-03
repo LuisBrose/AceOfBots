@@ -15,6 +15,11 @@ import java.util.EnumSet;
  */
 public class Bot {
     public static void main(String[] args) {
+        if(System.getenv("BOT_TOKEN") == null) {
+            System.out.println("Please set the BOT_TOKEN environment variable");
+            System.exit(1);
+        }
+
         EnumSet<GatewayIntent> intents = EnumSet.allOf(GatewayIntent.class); // Intents.ALL
 
         // Create the JDABuilder instance
