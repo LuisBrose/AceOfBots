@@ -33,8 +33,8 @@ public record Card(String suit, String rank, int value) {
     }
 
     public File getAsImage() {
-        System.out.println(getClass().getResource("images/playingCards/" + rank + suit + ".png"));
-        return new File(Objects.requireNonNull(getClass().getResource("images/playingCards/" + rank + suit + ".png")).getFile());
+        System.out.println(getClass().getResource("/images/playingCards/" + rank + suit + ".png"));
+        return new File(Objects.requireNonNull(getClass().getResource("/images/playingCards/" + rank + suit + ".png")).getFile());
     }
 
     @Override
