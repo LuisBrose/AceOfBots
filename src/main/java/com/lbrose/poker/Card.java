@@ -1,6 +1,7 @@
 package com.lbrose.poker;
 
 import java.io.File;
+import java.util.Objects;
 
 /**
  * Represents a standard playing card. It contains the suit, rank and value of the card as well as all possible suits and ranks.
@@ -32,7 +33,7 @@ public record Card(String suit, String rank, int value) {
     }
 
     public File getAsImage() {
-        return new File("images/playingCards/" + rank + suit + ".png");
+        return new File(Objects.requireNonNull(getClass().getResource("images/playingCards/" + rank + suit + ".png")).getFile());
     }
 
     @Override

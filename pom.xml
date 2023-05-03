@@ -35,6 +35,15 @@
       </plugin>
     </plugins>
     <directory>target</directory>
+    <resources>
+      <resource>
+        <directory>${project.basedir}/images/playingCards</directory>
+        <targetPath>${project.build.outputDirectory}/images/playingCards</targetPath>
+        <includes>
+          <include>**/*.jpg</include>
+        </includes>
+      </resource>
+    </resources>
   </build>
 
   <properties>
