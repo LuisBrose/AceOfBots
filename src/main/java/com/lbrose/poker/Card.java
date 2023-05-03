@@ -1,6 +1,6 @@
 package com.lbrose.poker;
 
-import java.io.File;
+import java.io.*;
 import java.util.Objects;
 
 /**
@@ -51,8 +51,26 @@ public record Card(String suit, String rank, int value) {
     }
 
     public File getAsImage() {
-        System.out.println(getClass().getResource("/images/playingCards/" + rank + suit + ".png"));
-        return new File(Objects.requireNonNull(getClass().getResource("/images/playingCards/" + rank + suit + ".png")).getFile());
+    try {
+        InputStream inputStream = getClass().getResourceAsStream("/images/playingCards/" + this + ".png");
+
+        File file = new File(toString());
+        OutputStream outputStream = new FileOutputStream(file);
+
+        byte[] buffer = new byte[1024];
+        int bytesRead;
+        while ((bytesRead = inputStream.read(buffer)) != -1) {
+            outputStream.write(buffer, 0, bytesRead);
+        }
+
+        inputStream.close();
+        outputStream.close();
+
+        return file;
+    } catch (Exception e) {
+        e.printStackTrace();
+        return null;
+    }
     }
 
     @Override
