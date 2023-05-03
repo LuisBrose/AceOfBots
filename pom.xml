@@ -40,6 +40,7 @@
         <directory>${project.basedir}/images/playingCards</directory>
         <targetPath>${project.build.outputDirectory}/images/playingCards</targetPath>
         <includes>
+          <include>**/*.png</include>
           <include>**/*.jpg</include>
         </includes>
       </resource>
