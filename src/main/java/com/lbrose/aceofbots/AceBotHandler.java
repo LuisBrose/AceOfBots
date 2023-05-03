@@ -101,9 +101,9 @@ public class AceBotHandler implements IGame {
             images[i] = communityCards[i].getAsImage();
         }
         ImageMerger merger = new ImageMerger(images);
-        merger.mergeImages("images/mergeOutput/community.png", 100);
+        merger.mergeImages("community.png", 100);
 
-        FileUpload fileUpload = FileUpload.fromData(new File("images/mergeOutput/community.png")).setName("community.png");
+        FileUpload fileUpload = FileUpload.fromData(new File("community.png")).setName("community.png");
 
         EmbedBuilder builder = new EmbedBuilder();
         builder.setTitle("AceOfBots - Poker")
