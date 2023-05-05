@@ -1,7 +1,9 @@
 package com.lbrose.poker;
 
-import java.io.*;
-import java.util.Objects;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 /**
  * Represents a standard playing card. It contains the suit, rank and value of the card as well as all possible suits and ranks.
