@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
 
 public class Game {
     private final IGame frontEnd;
@@ -65,11 +66,14 @@ public class Game {
         startBettingRound();
     }
 
+    private ArrayList<CompletableFuture<PlayerStatus>> futures = new ArrayList<>();
+
     public void startBettingRound() {
         boolean bettingFinished = false;
 
         while (!bettingFinished) {
             bettingFinished = true;
+            CountDownLatch latch = new CountDownLatch(1);
             for (int i = dealer; i < players.size() + dealer; i++) {
                 int pIndex = i % players.size();
                 Player player = players.get(pIndex);
@@ -78,7 +82,15 @@ public class Game {
                 if (currentStatus == PlayerStatus.WAITING){
                     bettingFinished = false;
                     CompletableFuture<PlayerStatus> future = CompletableFuture.supplyAsync(() -> frontEnd.getPlayerAction(player));
-                    player.setStatus(future.join());
+                    future.thenAccept(status -> {
+                        player.setStatus(status);
+                        latch.countDown();
+                    });
+                    try {
+                        latch.await();
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
                 }
             }
         }
