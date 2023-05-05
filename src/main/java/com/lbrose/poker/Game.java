@@ -63,7 +63,10 @@ public class Game {
         updateRound(round);
         resetPlayerStatus();
         startBettingRound();
+        waitForBettingRound();
     }
+
+    private ArrayList<CompletableFuture<PlayerStatus>> futures = new ArrayList<>();
 
     public void startBettingRound() {
         boolean bettingFinished = false;
@@ -78,9 +81,19 @@ public class Game {
                 if (currentStatus == PlayerStatus.WAITING){
                     bettingFinished = false;
                     CompletableFuture<PlayerStatus> future = CompletableFuture.supplyAsync(() -> frontEnd.getPlayerAction(player));
-                    player.setStatus(future.join());
+                    future.thenAccept(player::setStatus);
+                    futures.add(future);
                 }
             }
+        }
+    }
+
+    public void waitForBettingRound() {
+        try {
+            CompletableFuture.allOf(futures.toArray(new CompletableFuture[futures.size()])).get();
+            futures.clear();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
