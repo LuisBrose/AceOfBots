@@ -51,10 +51,19 @@ public class Game {
         communityCards = deck.getCommunityCards();
         playRound(Round.PREFLOP);
         frontEnd.updateCommunityCards(Arrays.copyOfRange(communityCards, 0, 3));
+
+        startBettingRound().join();
+
         playRound(Round.FLOP);
         frontEnd.updateCommunityCards(Arrays.copyOfRange(communityCards, 0, 4));
+
+        startBettingRound().join();
+
         playRound(Round.TURN);
         frontEnd.updateCommunityCards(Arrays.copyOfRange(communityCards, 0, 5));
+
+        startBettingRound().join();
+
         playRound(Round.RIVER);
         playRound(Round.SHOWDOWN);
 
@@ -66,12 +75,12 @@ public class Game {
         startBettingRound();
     }
 
-    public void startBettingRound() {
+    public CompletableFuture<Void> startBettingRound() {
+        CompletableFuture<Void> future = new CompletableFuture<>();
         boolean bettingFinished = false;
 
         while (!bettingFinished) {
             bettingFinished = true;
-            CountDownLatch latch = new CountDownLatch(1);
             for (int i = dealer; i < players.size() + dealer; i++) {
                 int pIndex = i % players.size();
                 Player player = players.get(pIndex);
@@ -79,19 +88,17 @@ public class Game {
                 PlayerStatus currentStatus = player.getStatus();
                 if (currentStatus == PlayerStatus.WAITING){
                     bettingFinished = false;
-                    CompletableFuture<PlayerStatus> future = CompletableFuture.supplyAsync(() -> frontEnd.getPlayerAction(player));
-                    future.thenAccept(status -> {
-                        player.setStatus(status);
-                        latch.countDown();
-                    });
-                    try {
-                        latch.await();
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                    }
+                    CompletableFuture<PlayerStatus> playerFuture = CompletableFuture.supplyAsync(() -> frontEnd.getPlayerAction(player));
+                    playerFuture.thenAccept(player::setStatus);
                 }
             }
         }
+
+        CompletableFuture.allOf(players.stream()
+                        .map(Player::getFuture)
+                        .toArray(CompletableFuture[]::new))
+                .thenRun(() -> future.complete(null));
+        return future;
     }
 
     public void nextGame() {
