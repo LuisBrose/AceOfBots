@@ -1,10 +1,9 @@
 package com.lbrose.poker;
 
-import com.lbrose.aceofbots.AceBotHandler;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.concurrent.CompletableFuture;
 
 public class Game {
     private final IGame frontEnd;
@@ -35,6 +34,14 @@ public class Game {
         return dealer;
     }
 
+    public void resetPlayerStatus() {
+        for (Player player : players) {
+            PlayerStatus currentStatus = player.getStatus();
+            if(currentStatus == PlayerStatus.CALL || currentStatus == PlayerStatus.RAISE || currentStatus == PlayerStatus.CHECK)
+                player.setStatus(PlayerStatus.WAITING);
+        }
+    }
+
     public void start() {
         deck = new Deck();
         for (Player player : players) {
@@ -54,6 +61,7 @@ public class Game {
 
     public void playRound(Round round) {
         updateRound(round);
+        resetPlayerStatus();
         startBettingRound();
     }
 
@@ -69,7 +77,8 @@ public class Game {
                 PlayerStatus currentStatus = player.getStatus();
                 if (currentStatus == PlayerStatus.WAITING){
                     bettingFinished = false;
-                    player.setStatus(frontEnd.getPlayerAction(player));
+                    CompletableFuture<PlayerStatus> future = CompletableFuture.supplyAsync(() -> frontEnd.getPlayerAction(player));
+                    player.setStatus(future.join());
                 }
             }
         }

@@ -1,5 +1,6 @@
 package com.lbrose.aceofbots;
 
+import com.lbrose.poker.PlayerStatus;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -45,10 +46,10 @@ public class AceBotListener extends ListenerAdapter {
         switch (event.getComponentId()) {
             case "start" -> handler.startGame(event);
             case "settings" -> event.reply("not implemented yet").queue();
-            case "checkCall" -> event.reply("check/call").queue();
-            case "raise" -> event.reply("raise").queue();
-            case "fold" -> event.reply("fold").queue();
-            case "allIn" -> event.reply("all in").queue();
+            case "checkCall" -> handler.updatePlayerStatus(event, PlayerStatus.CALL);
+            case "raise" -> handler.updatePlayerStatus(event, PlayerStatus.RAISE);
+            case "fold" -> handler.updatePlayerStatus(event, PlayerStatus.FOLD);
+            case "allIn" -> handler.updatePlayerStatus(event, PlayerStatus.ALL_IN);
         }
     }
 }
