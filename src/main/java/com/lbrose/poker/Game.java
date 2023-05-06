@@ -43,10 +43,11 @@ public class Game {
         }
     }
 
-    public Boolean setPlayerStatus(String playerId, PlayerStatus status) {
+    public synchronized Boolean setPlayerStatus(String playerId, PlayerStatus status) {
         for (Player player : players) {
             if (player.getId().equals(playerId) && player.getStatus() == PlayerStatus.WAITING) {
                 player.setStatus(status);
+                notifyAll();
                 return true;
             }
         }
