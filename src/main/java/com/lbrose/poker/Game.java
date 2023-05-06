@@ -47,6 +47,7 @@ public class Game {
         for (Player player : players) {
             if (player.getId().equals(playerId) && player.getStatus() == PlayerStatus.WAITING) {
                 player.setStatus(status);
+                System.out.println("Player " + playerId + " is " + status);
                 notifyAll();
                 return true;
             }
@@ -62,12 +63,16 @@ public class Game {
         communityCards = deck.getCommunityCards();
         playRound(Round.PREFLOP)
                 .thenRun(() -> frontEnd.updateCommunityCards(Arrays.copyOfRange(communityCards, 0, 3)))
-                .thenCompose(aVoid -> playRound(Round.FLOP))
+                .join(); // wait for PREFLOP round to finish
+        playRound(Round.FLOP)
                 .thenRun(() -> frontEnd.updateCommunityCards(Arrays.copyOfRange(communityCards, 0, 4)))
-                .thenCompose(aVoid -> playRound(Round.TURN))
+                .join(); // wait for FLOP round to finish
+        playRound(Round.TURN)
                 .thenRun(() -> frontEnd.updateCommunityCards(Arrays.copyOfRange(communityCards, 0, 5)))
-                .thenCompose(aVoid -> playRound(Round.RIVER))
-                .thenRun(() -> playRound(Round.SHOWDOWN));
+                .join(); // wait for TURN round to finish
+        playRound(Round.RIVER)
+                .thenRun(() -> playRound(Round.SHOWDOWN))
+                .join(); // wait for RIVER and SHOWDOWN rounds to finish
     }
 
     public CompletableFuture<Void> playRound(Round round) {
