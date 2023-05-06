@@ -5,7 +5,7 @@ import java.util.concurrent.CompletableFuture;
 public class Player {
     private Card[] hand;
     private final String id;
-    private PlayerStatus status = PlayerStatus.WAITING;
+    private PlayerStatus status;
 
     private int balance;
     private int bet;
@@ -24,6 +24,7 @@ public class Player {
 
     public Player(String id) {
         this.id = id;
+        setStatus(PlayerStatus.WAITING);
     }
 
 
