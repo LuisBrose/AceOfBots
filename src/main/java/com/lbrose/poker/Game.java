@@ -82,22 +82,32 @@ public class Game {
     }
 
     public void startBettingRound() {
-        CompletableFuture<Void> allPlayersReady = CompletableFuture.allOf(players.stream()
-                .filter(p -> p.getStatus() == PlayerStatus.WAITING)
-                .map(p -> CompletableFuture.runAsync(() -> {
-                    synchronized (p) {
-                        while (p.getStatus() == PlayerStatus.WAITING) {
+        CountDownLatch latch = new CountDownLatch(players.size());
+
+        for (Player player : players) {
+            if (player.getStatus() == PlayerStatus.WAITING) {
+                CompletableFuture.runAsync(() -> {
+                    synchronized (player) {
+                        while (player.getStatus() == PlayerStatus.WAITING) {
                             try {
-                                p.wait();
+                                player.wait();
                             } catch (InterruptedException e) {
                                 e.printStackTrace();
                             }
                         }
+                        latch.countDown();
                     }
-                }))
-                .toArray(CompletableFuture[]::new));
+                });
+            } else {
+                latch.countDown();
+            }
+        }
 
-        allPlayersReady.join();
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     public void nextGame() {
