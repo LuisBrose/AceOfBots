@@ -59,24 +59,20 @@ public class Game {
             player.setHand(deck.drawCard(), deck.drawCard());
         }
         communityCards = deck.getCommunityCards();
-        playRound(Round.PREFLOP);
-        frontEnd.updateCommunityCards(Arrays.copyOfRange(communityCards, 0, 3));
-
-        playRound(Round.FLOP);
-        frontEnd.updateCommunityCards(Arrays.copyOfRange(communityCards, 0, 4));
-
-        playRound(Round.TURN);
-        frontEnd.updateCommunityCards(Arrays.copyOfRange(communityCards, 0, 5));
-
-        playRound(Round.RIVER);
-        playRound(Round.SHOWDOWN);
-
+        playRound(Round.PREFLOP)
+                .thenRun(() -> frontEnd.updateCommunityCards(Arrays.copyOfRange(communityCards, 0, 3)))
+                .thenCompose(aVoid -> playRound(Round.FLOP))
+                .thenRun(() -> frontEnd.updateCommunityCards(Arrays.copyOfRange(communityCards, 0, 4)))
+                .thenCompose(aVoid -> playRound(Round.TURN))
+                .thenRun(() -> frontEnd.updateCommunityCards(Arrays.copyOfRange(communityCards, 0, 5)))
+                .thenCompose(aVoid -> playRound(Round.RIVER))
+                .thenRun(() -> playRound(Round.SHOWDOWN));
     }
 
-    public void playRound(Round round) {
+    public CompletableFuture<Void> playRound(Round round) {
         updateRound(round);
         resetPlayerStatus();
-        startBettingRound();
+        return CompletableFuture.runAsync(this::startBettingRound);
     }
 
     public void startBettingRound() {

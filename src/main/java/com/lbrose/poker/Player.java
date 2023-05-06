@@ -5,18 +5,13 @@ import java.util.concurrent.CompletableFuture;
 public class Player {
     private Card[] hand;
     private final String id;
-    private PlayerStatus status;
+    private PlayerStatus status = PlayerStatus.WAITING;
 
     private int balance;
     private int bet;
 
     public void setHand(Card card1, Card card2) {
         this.hand = new Card[]{card1, card2};
-    }
-
-    public CompletableFuture<PlayerStatus> getFuture() {
-        CompletableFuture<PlayerStatus> future = new CompletableFuture<>();
-        return future;
     }
 
     public PlayerStatus getStatus() {
