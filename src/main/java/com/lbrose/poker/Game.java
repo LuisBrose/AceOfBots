@@ -38,9 +38,19 @@ public class Game {
     public void resetPlayerStatus() {
         for (Player player : players) {
             PlayerStatus currentStatus = player.getStatus();
-            if(currentStatus == PlayerStatus.CALL || currentStatus == PlayerStatus.RAISE || currentStatus == PlayerStatus.CHECK)
+            if (currentStatus == PlayerStatus.CALL || currentStatus == PlayerStatus.RAISE || currentStatus == PlayerStatus.CHECK)
                 player.setStatus(PlayerStatus.WAITING);
         }
+    }
+
+    public Boolean setPlayerStatus(String playerId, PlayerStatus status) {
+        for (Player player : players) {
+            if (player.getId().equals(playerId) && player.getStatus() == PlayerStatus.WAITING) {
+                player.setStatus(status);
+                return true;
+            }
+        }
+        return false;
     }
 
     public void start() {
@@ -52,17 +62,11 @@ public class Game {
         playRound(Round.PREFLOP);
         frontEnd.updateCommunityCards(Arrays.copyOfRange(communityCards, 0, 3));
 
-        startBettingRound().join();
-
         playRound(Round.FLOP);
         frontEnd.updateCommunityCards(Arrays.copyOfRange(communityCards, 0, 4));
 
-        startBettingRound().join();
-
         playRound(Round.TURN);
         frontEnd.updateCommunityCards(Arrays.copyOfRange(communityCards, 0, 5));
-
-        startBettingRound().join();
 
         playRound(Round.RIVER);
         playRound(Round.SHOWDOWN);
@@ -75,36 +79,32 @@ public class Game {
         startBettingRound();
     }
 
-    public CompletableFuture<Void> startBettingRound() {
-        CompletableFuture<Void> future = new CompletableFuture<>();
+    public void startBettingRound() {
         boolean bettingFinished = false;
 
         while (!bettingFinished) {
             bettingFinished = true;
-            for (int i = dealer; i < players.size() + dealer; i++) {
-                int pIndex = i % players.size();
-                Player player = players.get(pIndex);
-
-                PlayerStatus currentStatus = player.getStatus();
-                if (currentStatus == PlayerStatus.WAITING){
+            for (Player player : players) {
+                if (player.getStatus() == PlayerStatus.WAITING) {
                     bettingFinished = false;
-                    CompletableFuture<PlayerStatus> playerFuture = CompletableFuture.supplyAsync(() -> frontEnd.getPlayerAction(player));
-                    playerFuture.thenAccept(player::setStatus);
+                    break;
+                }
+            }
+            if (!bettingFinished) {
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
             }
         }
-
-        CompletableFuture.allOf(players.stream()
-                        .map(Player::getFuture)
-                        .toArray(CompletableFuture[]::new))
-                .thenRun(() -> future.complete(null));
-        return future;
     }
 
     public void nextGame() {
         dealer = (dealer + 1) % players.size();
         start();
     }
+
 
     /**
      * Checks if a player has already joined the game

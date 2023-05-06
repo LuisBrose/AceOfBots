@@ -15,12 +15,12 @@ import net.dv8tion.jda.api.utils.FileUpload;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Callable;
 
 public class AceBotHandler implements IGame {
     private Game game = null;
     private String gameMessageId = null;
     private MessageChannelUnion channel = null;
-    private Map<String, PlayerStatus> statusTracker = new HashMap<>();
 
     public void menu(SlashCommandInteractionEvent event) {
         if (game != null) {
@@ -88,24 +88,8 @@ public class AceBotHandler implements IGame {
     }
 
     public void updatePlayerStatus(ButtonInteractionEvent event, PlayerStatus status){
-        statusTracker.put(event.getUser().getId(), status);
+        game.setPlayerStatus(event.getUser().getId(), status);
         event.getInteraction().deferEdit().queue();
-    }
-
-    @Override
-    public PlayerStatus getPlayerAction(Player player) {
-        while (true) {
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            if (statusTracker.getOrDefault(player.getId(), PlayerStatus.WAITING) != PlayerStatus.WAITING){
-                PlayerStatus status = statusTracker.get(player.getId());
-                statusTracker.put(player.getId(), PlayerStatus.WAITING);
-                return status;
-            }
-        }
     }
 
     @Override

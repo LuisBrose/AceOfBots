@@ -1,7 +1,6 @@
 package com.lbrose.poker;
 
 public interface IGame {
-    public PlayerStatus getPlayerAction(Player player);
 
     // Updates
     public void updateTotalPot(int totalPot);
