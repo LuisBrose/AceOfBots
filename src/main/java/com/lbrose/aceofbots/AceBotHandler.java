@@ -16,6 +16,7 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
 
 public class AceBotHandler implements IGame {
     private Game game = null;
@@ -129,6 +130,16 @@ public class AceBotHandler implements IGame {
 
     @Override
     public void updatePlayer(Player player) {
+
+    }
+
+    @Override
+    public void showPlayerHand(String id, Card[] hand) {
+
+    }
+
+    @Override
+    public void requestPlayerMove(String id, int i, boolean b) {
 
     }
 }

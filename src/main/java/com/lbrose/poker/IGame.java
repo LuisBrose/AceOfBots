@@ -7,4 +7,7 @@ public interface IGame {
     public void updateCommunityCards(Card[] communityCards);
     public void updateRound(Round round);
     public void updatePlayer(Player player);
+
+    void showPlayerHand(String id, Card[] hand);
+    void requestPlayerMove(String id, int i, boolean b);
 }
