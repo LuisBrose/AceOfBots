@@ -14,16 +14,14 @@ import net.dv8tion.jda.api.utils.FileUpload;
 
 import java.io.File;
 import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.Callable;
-import java.util.concurrent.CompletableFuture;
 
 public class AceBotHandler implements IGame {
     private Game game = null;
     private String gameMessageId = null;
     private MessageChannelUnion channel = null;
+    private HashMap<String, SlashCommandInteractionEvent> playerMenus = new HashMap<>();
 
-    public void menu(SlashCommandInteractionEvent event) {
+    public void gameMenu(SlashCommandInteractionEvent event) {
         if (game != null) {
             event.reply("Game already in progress").setEphemeral(true).queue();
             return;
@@ -67,9 +65,8 @@ public class AceBotHandler implements IGame {
 
     public void addPlayer(SlashCommandInteractionEvent event) {
         if (game == null) {
-            event.reply("No game in progress").queue();
+            event.reply("No game in progress").setEphemeral(true).queue();
             return;
-
         }
 
         boolean added = game.addPlayer(event.getUser().getId());
@@ -78,17 +75,55 @@ public class AceBotHandler implements IGame {
             event.reply("already joined or game full").setEphemeral(true).queue();
             return;
         }
-        event.reply("Added player " + event.getUser().getName()).setEphemeral(true)
+
+        playerMenus.put(event.getUser().getId(), event);
+        event.deferReply(true).queue();
+    }
+
+    public void removePlayer(SlashCommandInteractionEvent event) {
+        if (game == null) {
+            event.reply("No game in progress").queue();
+            return;
+        }
+
+        boolean removed = game.removePlayer(event.getUser().getId());
+
+        if (!removed) {
+            event.reply("not joined").setEphemeral(true).queue();
+            return;
+        }
+        event.reply("you left the game").setEphemeral(true).queue();
+    }
+
+    public void showPlayerMenu(String playerId) {
+        Card[] playerHand = game.getPlayer(playerId).getHand();
+
+        File[] images = new File[playerHand.length];
+        for (int i = 0; i < playerHand.length; i++) {
+            images[i] = playerHand[i].getAsImage();
+        }
+        ImageMerger merger = new ImageMerger(images);
+        merger.mergeImages(playerId + ".png", 100);
+
+        FileUpload fileUpload = FileUpload.fromData(new File(playerId + ".png")).setName(playerId + ".png");
+
+        EmbedBuilder builder = new EmbedBuilder();
+        builder.setTitle(" ")
+                .setColor(0x15683f)
+                .setImage("attachment://" + fileUpload.getName());
+
+        MessageEmbed embed = builder.build();
+
+        playerMenus.get(playerId).getHook().sendMessage("").addEmbeds(embed).addFiles(fileUpload)
                 .addActionRow(
                         Button.primary("checkCall", "check/call"),
                         Button.danger("fold", "fold"),
                         Button.success("raise", "raise"),
                         Button.secondary("allIn", "all in")
-                )
-                .queue();
+                ).queue();
     }
 
-    public void updatePlayerStatus(ButtonInteractionEvent event, PlayerStatus status){
+    public void updatePlayerStatus(ButtonInteractionEvent event, PlayerStatus status) {
         game.setPlayerStatus(event.getUser().getId(), status);
         event.getInteraction().deferEdit().queue();
     }
@@ -116,7 +151,6 @@ public class AceBotHandler implements IGame {
                 .setThumbnail("https://cdn.discordapp.com/attachments/1096207304946368523/1102299179012857928/74661ed1-54cd-4e3f-9504-1be41e6d3f12.jpg")
                 .setImage("attachment://" + fileUpload.getName());
 
-
         MessageEmbed embed = builder.build();
 
         Message message = channel.retrieveMessageById(gameMessageId).complete();
@@ -135,7 +169,7 @@ public class AceBotHandler implements IGame {
 
     @Override
     public void showPlayerHand(String id, Card[] hand) {
-
+        showPlayerMenu(id);
     }
 
     @Override

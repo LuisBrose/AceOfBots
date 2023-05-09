@@ -34,8 +34,9 @@ public class AceBotListener extends ListenerAdapter {
     @Override
     public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
         switch (event.getName()) {
-            case "play" -> handler.menu(event);
+            case "play" -> handler.gameMenu(event);
             case "join" -> handler.addPlayer(event);
+            case "leave" -> handler.removePlayer(event);
             default -> event.reply("Not yet implemented").queue();
         }
 

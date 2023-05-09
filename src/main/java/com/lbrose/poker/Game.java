@@ -10,6 +10,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class Game {
+    private boolean started = false;
+    public boolean hasStarted() {return started;}
+
     private final IGame frontEnd;
 
     private ConcurrentHashMap<String, Player> players = new ConcurrentHashMap<>();
@@ -33,6 +36,10 @@ public class Game {
 
     public ConcurrentHashMap<String, Player> getPlayers() {
         return players;
+    }
+
+    public Player getPlayer(String id) {
+        return players.get(id);
     }
 
     public Card[] getCommunityCards() {
@@ -75,7 +82,11 @@ public class Game {
         threadPool.execute(() -> {
             deck = new Deck();
             players.values().forEach(player -> player.setHand(deck.drawCard(), deck.drawCard()));
+            started = true;
             communityCards = deck.getCommunityCards();
+
+            players.values().forEach(player -> frontEnd.showPlayerHand(player.getId(), player.getHand()));
+
             playRound(Round.PREFLOP)
                     .thenRun(() -> frontEnd.updateCommunityCards(Arrays.copyOfRange(communityCards, 0, 3)))
                     .join(); // wait for PREFLOP round to finish
@@ -116,15 +127,14 @@ public class Game {
         int lastRaiseIndex = currentPlayerIndex;
         int numConsecutiveChecks = 0;
 
-        while (numActivePlayers > 1 && numConsecutiveChecks < numActivePlayers) {
+        while (numActivePlayers > 0 && numConsecutiveChecks < numActivePlayers) { // !!!CHANGE NUM ACTIVE BACK TO : numActivePlayers > 1
             Player currentPlayer = activePlayers.get(currentPlayerIndex);
             PlayerStatus currentStatus = currentPlayer.getStatus();
 
             if (currentStatus == PlayerStatus.WAITING || currentStatus == PlayerStatus.CALL || currentStatus == PlayerStatus.RAISE) {
                 // Ask the player to make their move asynchronously
                 CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
-                    // Ask the front-end to display the player's hand and wait for their move
-                    frontEnd.showPlayerHand(currentPlayer.getId(), currentPlayer.getHand());
+                    // Ask the front-end to wait for their move
                     frontEnd.requestPlayerMove(currentPlayer.getId(), currentBet - currentPlayer.getBet(), currentBet == 0);
 
                     // Wait for the player to make their move
@@ -189,8 +199,7 @@ public class Game {
         return players.containsKey(playerId);
     }
 
-    /**
-     * Adds a player to the game
+    /**Adds a player to the game
      *
      * @param playerId the id of the player
      * @return true if player was added
@@ -198,6 +207,14 @@ public class Game {
     public boolean addPlayer(String playerId) {
         Player player = new Player(playerId);
         return players.size() < 8 && players.putIfAbsent(playerId, player) == null;
+    }
+
+    /**Removes a player from the game
+     * @param playerId the id of the player
+     * @return true if player was removed
+     */
+    public Boolean removePlayer(String playerId) {
+        return players.remove(playerId) != null;
     }
 
     public void updateRound(Round round) {
