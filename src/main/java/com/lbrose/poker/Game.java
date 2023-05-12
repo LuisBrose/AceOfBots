@@ -10,9 +10,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class Game {
-    private boolean started = false;
-    public boolean hasStarted() {return started;}
-
     private final IGame frontEnd;
 
     private ConcurrentHashMap<String, Player> players = new ConcurrentHashMap<>();
@@ -89,7 +86,6 @@ public class Game {
         threadPool.execute(() -> {
             deck = new Deck();
             players.values().forEach(player -> player.setHand(deck.drawCard(), deck.drawCard()));
-            started = true;
             communityCards = deck.getCommunityCards();
 
             players.values().forEach(player -> frontEnd.showPlayerHand(player.getId(), player.getHand()));
@@ -104,7 +100,7 @@ public class Game {
                     .thenRun(() -> frontEnd.updateCommunityCards(Arrays.copyOfRange(communityCards, 0, 5)))
                     .join(); // wait for TURN round to finish
             playRound(Round.RIVER)
-                    .thenRun(() -> playRound(Round.SHOWDOWN))
+                    .thenRun(() -> {playRound(Round.SHOWDOWN);System.out.println(determineWinner());})
                     .join(); // wait for RIVER and SHOWDOWN rounds to finish
         });
     }
@@ -138,7 +134,7 @@ public class Game {
             Player currentPlayer = activePlayers.get(currentPlayerIndex);
             PlayerStatus currentStatus = currentPlayer.getStatus();
 
-            if (currentStatus == PlayerStatus.WAITING || currentStatus == PlayerStatus.CALL || currentStatus == PlayerStatus.RAISE) {
+            if (currentStatus == PlayerStatus.WAITING) {
                 // Ask the player to make their move asynchronously
                 CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
                     // Ask the front-end to wait for their move
@@ -176,7 +172,7 @@ public class Game {
                         // Player has raised, reset the counter for consecutive checks
                         lastRaiseIndex = currentPlayerIndex;
                         numConsecutiveChecks = 0;
-                    } else if (newStatus == PlayerStatus.CALL) {
+                    } else if (newStatus == PlayerStatus.CALL || newStatus == PlayerStatus.CHECK) {
                         // Player has checked, update the counter for consecutive checks
                         numConsecutiveChecks++;
                     }
@@ -188,7 +184,7 @@ public class Game {
         }
     }
 
-    public void determineWinner() {
+    public Player determineWinner() {
         double max = 0;
         Player winner = null;
 
@@ -201,12 +197,7 @@ public class Game {
                 }
             }
         }
-
-        if (winner != null) {
-            System.out.println("The winner is " + winner.getId() + " with a hand value of " + max);
-        } else {
-            System.out.println("No winner found.");
-        }
+        return winner;
     }
 
     /**

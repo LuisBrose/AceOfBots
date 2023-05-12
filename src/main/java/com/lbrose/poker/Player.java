@@ -1,5 +1,6 @@
 package com.lbrose.poker;
 
+import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 
 public class Player {
@@ -91,6 +92,11 @@ public class Player {
         System.arraycopy(hand, 0, allCards, 0, 2);
         System.arraycopy(communityCards, 0, allCards, 2, 5);
         return HandEvaluator.evaluateHand(allCards);
+    }
+
+    @Override
+    public String toString() {
+        return "Player: " + id + " " + Arrays.toString(hand) + " " + status + " " + balance + " " + bet;
     }
 
 }
