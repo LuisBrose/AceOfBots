@@ -124,7 +124,9 @@ public class AceBotHandler implements IGame {
     }
 
     public void updatePlayerStatus(ButtonInteractionEvent event, PlayerStatus status) {
-        game.setPlayerStatus(event.getUser().getId(), status);
+        int amount = 0;
+        if (status == PlayerStatus.RAISE) amount = 0; //insert raise amount later !!!
+        game.doPlayerAction(event.getUser().getId(), status,amount);
         event.getInteraction().deferEdit().queue();
     }
 

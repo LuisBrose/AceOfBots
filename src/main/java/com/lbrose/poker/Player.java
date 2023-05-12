@@ -48,35 +48,44 @@ public class Player {
         return bet;
     }
 
-    public int callRaise(int tableBet, int raiseAmount) {
+    /**Handles the betting logic and PlayerStatus
+     * @param tableBet the current highest bet on the table
+     * @param raiseAmount the amount the player wants to raise (can be 0 for check or call)
+     */
+    public void checkCallRaise(int tableBet, int raiseAmount) {
         int callAmount = tableBet + raiseAmount - bet;
-        int maxCallAmount = balance - callAmount;
 
-        if(maxCallAmount < 0) {
+        if(callAmount == 0) { // check
+            this.status = PlayerStatus.CHECK;
+            return;
+        }
+
+        if(callAmount > balance) { // force all in
             this.status = PlayerStatus.ALL_IN;
             this.bet += balance;
             this.balance = 0;
-            return tableBet;
+            return;
         }
 
-        this.status = PlayerStatus.CALL;
+        if(raiseAmount>0)this.status = PlayerStatus.RAISE; // determine between call and raise
+        else this.status = PlayerStatus.CALL;
+
         this.bet = tableBet+raiseAmount;
         this.balance -= callAmount;
-        return bet;
     }
 
-    public int fold() {
-        this.status = PlayerStatus.FOLD;
-        int lostBet = bet;
-        bet = 0;
-        return lostBet;
+    /** puts all the players money in the pot
+     */
+    public void allIn() {
+        this.status = PlayerStatus.ALL_IN;
+        this.bet += balance;
+        this.balance = 0;
     }
 
-    public int check() {
-        this.status = PlayerStatus.CHECK;
-        return bet;
-    }
-
+    /**A double representing the strength of the players hand
+     * @param communityCards the cards on the table
+     * @return the value of the players hand
+     */
     public double getHandValue(Card[] communityCards) {
         Card[] allCards = new Card[7];
         System.arraycopy(hand, 0, allCards, 0, 2);

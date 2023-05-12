@@ -57,16 +57,23 @@ public class Game {
     }
 
     /**
-     * Sets the status of a player
-     *
+     * Makes the next move for a player
      * @param playerId The id of the player
-     * @param status   The status to set the player to
-     * @return True if the player was successfully set to the status, false otherwise
+     * @param action   The next move the player should make
+     * @return true if the player was found and the action was performed, false otherwise
      */
-    public Boolean setPlayerStatus(String playerId, PlayerStatus status) {
+    public Boolean doPlayerAction(String playerId, PlayerStatus action, int amount) {
         Player player = players.get(playerId);
         if (player != null && player.getStatus() == PlayerStatus.WAITING) {
-            player.setStatus(status);
+            switch (action) {
+                case FOLD -> player.setStatus(PlayerStatus.FOLD);
+                case CALL, CHECK, RAISE -> player.checkCallRaise(currentBet, amount);
+                case ALL_IN -> player.allIn();
+                default -> player.setStatus(PlayerStatus.WAITING);
+            }
+
+            totalPot += player.getBet(); // add the player's bet to the total pot
+
             synchronized (player) {
                 player.notifyAll();
             }
@@ -178,6 +185,27 @@ public class Game {
 
             // Move on to the next player
             currentPlayerIndex = (currentPlayerIndex + 1) % numActivePlayers;
+        }
+    }
+
+    public void determineWinner() {
+        double max = 0;
+        Player winner = null;
+
+        for (Player player : players.values()) {
+            if (player.getStatus() != PlayerStatus.FOLD) {
+                double strength = player.getHandValue(getCommunityCards());
+                if (strength > max) {
+                    max = strength;
+                    winner = player;
+                }
+            }
+        }
+
+        if (winner != null) {
+            System.out.println("The winner is " + winner.getId() + " with a hand value of " + max);
+        } else {
+            System.out.println("No winner found.");
         }
     }
 
