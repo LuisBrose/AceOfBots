@@ -6,11 +6,18 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.channel.unions.MessageChannelUnion;
+import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.interactions.InteractionHook;
+import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
+import net.dv8tion.jda.api.interactions.components.text.TextInput;
+import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
+import net.dv8tion.jda.api.interactions.modals.Modal;
 import net.dv8tion.jda.api.utils.FileUpload;
+import net.dv8tion.jda.internal.interactions.component.TextInputImpl;
+import net.dv8tion.jda.internal.interactions.modal.ModalImpl;
 
 import java.io.File;
 import java.util.HashMap;
@@ -19,7 +26,8 @@ public class AceBotHandler implements IGame {
     private Game game = null;
     private String gameMessageId = null;
     private MessageChannelUnion channel = null;
-    private HashMap<String, SlashCommandInteractionEvent> playerMenus = new HashMap<>();
+    private final HashMap<String, SlashCommandInteractionEvent> playerMenus = new HashMap<>();
+    private HashMap<String, Integer> betStorage = new HashMap<>();
 
     public void gameMenu(SlashCommandInteractionEvent event) {
         if (game != null) {
@@ -118,16 +126,36 @@ public class AceBotHandler implements IGame {
                 .addActionRow(
                         Button.primary("checkCall", "check/call"),
                         Button.danger("fold", "fold"),
+                        Button.success("betSize", "↑↓ raise amount"),
                         Button.success("raise", "raise"),
-                        Button.secondary("allIn", "all in")
-                ).queue();
+                        Button.danger("allIn", "all in")
+                )
+                .queue();
     }
 
     public void updatePlayerStatus(ButtonInteractionEvent event, PlayerStatus status) {
         int amount = 0;
-        if (status == PlayerStatus.RAISE) amount = 0; //insert raise amount later !!!
+        if (status == PlayerStatus.RAISE) amount = betStorage.getOrDefault(event.getUser().getId(),0);
         game.doPlayerAction(event.getUser().getId(), status,amount);
         event.getInteraction().deferEdit().queue();
+    }
+
+    public void openBetSizeMenu(ButtonInteractionEvent event) {
+        TextInputImpl textInput = new TextInputImpl("textInput",TextInputStyle.SHORT,"change your raise amount:",1,8,false,String.valueOf(betStorage.getOrDefault(event.getUser().getId(),0)),"0");
+        Modal modal = Modal.create("modal","\uD83D\uDCB2↑↓").addComponents(ActionRow.of(textInput)).build();
+
+        event.replyModal(modal).queue();
+    }
+
+    public void updatePlayerBetSize(ModalInteractionEvent event) {
+        try {
+            betStorage.put(event.getUser().getId(), Integer.valueOf(event.getValue("textInput").getAsString()));
+        }
+        catch (Exception e) {
+            event.reply("invalid input").setEphemeral(true).queue();
+            return;
+        }
+        event.deferEdit().queue();
     }
 
     @Override

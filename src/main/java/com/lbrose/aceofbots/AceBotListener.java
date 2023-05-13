@@ -1,6 +1,7 @@
 package com.lbrose.aceofbots;
 
 import com.lbrose.poker.PlayerStatus;
+import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -51,6 +52,13 @@ public class AceBotListener extends ListenerAdapter {
             case "raise" -> handler.updatePlayerStatus(event, PlayerStatus.RAISE);
             case "fold" -> handler.updatePlayerStatus(event, PlayerStatus.FOLD);
             case "allIn" -> handler.updatePlayerStatus(event, PlayerStatus.ALL_IN);
+            case "betSize" -> handler.openBetSizeMenu(event);
+            default -> event.reply("Not yet implemented").queue();
         }
+    }
+
+    @Override
+    public  void onModalInteraction(ModalInteractionEvent event) {
+        handler.updatePlayerBetSize(event);
     }
 }
