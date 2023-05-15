@@ -49,16 +49,15 @@ public class AceBotListener extends ListenerAdapter {
             case "start" -> handler.startGame(event);
             case "settings" -> event.reply("not implemented yet").queue();
             case "checkCall" -> handler.updatePlayerStatus(event, PlayerStatus.CALL);
-            case "raise" -> handler.updatePlayerStatus(event, PlayerStatus.RAISE);
+            case "raise" -> handler.openRaiseMenu(event);
             case "fold" -> handler.updatePlayerStatus(event, PlayerStatus.FOLD);
             case "allIn" -> handler.updatePlayerStatus(event, PlayerStatus.ALL_IN);
-            case "betSize" -> handler.openBetSizeMenu(event);
             default -> event.reply("Not yet implemented").queue();
         }
     }
 
     @Override
     public  void onModalInteraction(ModalInteractionEvent event) {
-        handler.updatePlayerBetSize(event);
+        handler.submitRaise(event);
     }
 }
