@@ -8,8 +8,8 @@ public class Player {
     private final String id;
     private PlayerStatus status;
 
-    private int balance;
-    private int bet;
+    private int balance = 1000;
+    private int bet = 0;
 
     public void setHand(Card card1, Card card2) {
         this.hand = new Card[]{card1, card2};
@@ -62,9 +62,7 @@ public class Player {
         }
 
         if(callAmount > balance) { // force all in
-            this.status = PlayerStatus.ALL_IN;
-            this.bet += balance;
-            this.balance = 0;
+            allIn();
             return;
         }
 

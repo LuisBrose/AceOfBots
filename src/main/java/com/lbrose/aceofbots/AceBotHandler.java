@@ -159,15 +159,10 @@ public class AceBotHandler implements IGame {
     }
 
     @Override
-    public void updateTotalPot(int totalPot) {
-
-    }
-
-    @Override
-    public void updateCommunityCards(Card[] communityCards) {
-        File[] images = new File[communityCards.length];
-        for (int i = 0; i < communityCards.length; i++) {
-            images[i] = communityCards[i].getAsImage();
+    public void updateGameInfo(GameStateData data) {
+        File[] images = new File[data.getCommunityCards().length];
+        for (int i = 0; i < data.getCommunityCards().length; i++) {
+            images[i] = data.getCommunityCards()[i].getAsImage();
         }
         ImageMerger merger = new ImageMerger(images);
         merger.mergeImages("community.png", 100);
@@ -176,7 +171,7 @@ public class AceBotHandler implements IGame {
 
         EmbedBuilder builder = new EmbedBuilder();
         builder.setTitle("AceOfBots - Poker")
-                .setDescription("River - betting round 4/4 - total pot: 1250 chips - 3 players remaining")
+                .setDescription(data.toString())
                 .setColor(0x15683f)
                 .setThumbnail("https://cdn.discordapp.com/attachments/1096207304946368523/1102299179012857928/74661ed1-54cd-4e3f-9504-1be41e6d3f12.jpg")
                 .setImage("attachment://" + fileUpload.getName());
@@ -185,15 +180,6 @@ public class AceBotHandler implements IGame {
 
         Message message = channel.retrieveMessageById(gameMessageId).complete();
         message.editMessage(" ").setEmbeds(embed).setComponents().setAttachments(fileUpload).queue();
-    }
-
-    @Override
-    public void updateRound(Round round) {
-
-    }
-
-    @Override
-    public void updatePlayer(Player player) {
 
     }
 
@@ -205,5 +191,10 @@ public class AceBotHandler implements IGame {
     @Override
     public void requestPlayerMove(String id, int i, boolean b) {
 
+    }
+
+    @Override
+    public void restartGame() {
+        betStorage.clear();
     }
 }

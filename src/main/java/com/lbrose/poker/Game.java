@@ -12,13 +12,12 @@ import java.util.concurrent.Executors;
 public class Game {
     private final IGame frontEnd;
 
-    private ConcurrentHashMap<String, Player> players = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Player> players = new ConcurrentHashMap<>();
     private Deck deck;
     private Card[] communityCards;
-    private int dealer = 0;
 
-    private int totalPot = 0;
-    private int currentBet = 0;
+    private int dealer = 0;
+    private GameStateData data;
 
     private final ExecutorService threadPool = Executors.newCachedThreadPool();
 
@@ -43,10 +42,6 @@ public class Game {
         return communityCards;
     }
 
-    public int getDealer() {
-        return dealer;
-    }
-
     public void resetPlayerStatus() {
         players.values().stream()
                 .filter(player -> player.getStatus() == PlayerStatus.CALL || player.getStatus() == PlayerStatus.RAISE || player.getStatus() == PlayerStatus.CHECK)
@@ -64,12 +59,11 @@ public class Game {
         if (player != null && player.getStatus() == PlayerStatus.WAITING) {
             switch (action) {
                 case FOLD -> player.setStatus(PlayerStatus.FOLD);
-                case CALL, CHECK, RAISE -> player.checkCallRaise(currentBet, amount);
+                case CALL, CHECK, RAISE -> player.checkCallRaise(data.getCurrentBet(), amount);
                 case ALL_IN -> player.allIn();
                 default -> player.setStatus(PlayerStatus.WAITING);
             }
-
-            totalPot += player.getBet(); // add the player's bet to the total pot
+            data.setTotalPot(data.getTotalPot()+player.getBet()); // add the player's bet to the total pot
 
             synchronized (player) {
                 player.notifyAll();
@@ -84,6 +78,7 @@ public class Game {
      */
     public void start() {
         threadPool.execute(() -> {
+            data = new GameStateData();
             deck = new Deck();
             players.values().forEach(player -> player.setHand(deck.drawCard(), deck.drawCard()));
             communityCards = deck.getCommunityCards();
@@ -91,16 +86,16 @@ public class Game {
             players.values().forEach(player -> frontEnd.showPlayerHand(player.getId(), player.getHand()));
 
             playRound(Round.PREFLOP)
-                    .thenRun(() -> frontEnd.updateCommunityCards(Arrays.copyOfRange(communityCards, 0, 3)))
+                    .thenRun(() -> {data.setCommunityCards(Arrays.copyOfRange(communityCards, 0, 3));frontEnd.updateGameInfo(data);})
                     .join(); // wait for PREFLOP round to finish
             playRound(Round.FLOP)
-                    .thenRun(() -> frontEnd.updateCommunityCards(Arrays.copyOfRange(communityCards, 0, 4)))
+                    .thenRun(() -> {data.setCommunityCards(Arrays.copyOfRange(communityCards, 0, 4));frontEnd.updateGameInfo(data);})
                     .join(); // wait for FLOP round to finish
             playRound(Round.TURN)
-                    .thenRun(() -> frontEnd.updateCommunityCards(Arrays.copyOfRange(communityCards, 0, 5)))
+                    .thenRun(() -> {data.setCommunityCards(Arrays.copyOfRange(communityCards, 0, 5));frontEnd.updateGameInfo(data);})
                     .join(); // wait for TURN round to finish
             playRound(Round.RIVER)
-                    .thenRun(() -> {playRound(Round.SHOWDOWN);System.out.println(determineWinner());})
+                    .thenRun(() -> {playRound(Round.SHOWDOWN);System.out.println(determineWinner());nextGame();})
                     .join(); // wait for RIVER and SHOWDOWN rounds to finish
         });
     }
@@ -112,7 +107,7 @@ public class Game {
      * @return A CompletableFuture that completes when the round is over
      */
     public CompletableFuture<Void> playRound(Round round) {
-        updateRound(round);
+
         resetPlayerStatus();
         return CompletableFuture.runAsync(this::startBettingRound, threadPool);
     }
@@ -137,8 +132,7 @@ public class Game {
             if (currentStatus == PlayerStatus.WAITING) {
                 // Ask the player to make their move asynchronously
                 CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
-                    // Ask the front-end to wait for their move
-                    frontEnd.requestPlayerMove(currentPlayer.getId(), currentBet - currentPlayer.getBet(), currentBet == 0);
+                    // Ask the front-end to wait for their move todo
 
                     // Wait for the player to make their move
                     synchronized (currentPlayer) {
@@ -156,7 +150,7 @@ public class Game {
                 // Process the player's move and update the pot and current bet
                 PlayerStatus newStatus = currentPlayer.getStatus();
                 int newBet = currentPlayer.getBet();
-                int newPot = totalPot + currentPlayer.getBet();
+                int newPot = data.getTotalPot() + currentPlayer.getBet();
 
                 if (newStatus == PlayerStatus.FOLD) {
                     // Player has folded, remove them from the active players list
@@ -164,9 +158,8 @@ public class Game {
                     numActivePlayers--;
                 } else {
                     // Player has called or raised, update the pot and current bet
-                    totalPot = newPot;
-                    totalPot += newBet;
-                    currentBet = newBet;
+                    data.setTotalPot(newPot+newBet);
+                    data.setCurrentBet(newBet);
 
                     if (newStatus == PlayerStatus.RAISE) {
                         // Player has raised, reset the counter for consecutive checks
@@ -205,6 +198,7 @@ public class Game {
      */
     public void nextGame() {
         dealer = (dealer + 1) % players.size();
+        frontEnd.restartGame();
         start();
     }
 
@@ -235,9 +229,4 @@ public class Game {
     public Boolean removePlayer(String playerId) {
         return players.remove(playerId) != null;
     }
-
-    public void updateRound(Round round) {
-        frontEnd.updateRound(round);
-    }
-
 }
