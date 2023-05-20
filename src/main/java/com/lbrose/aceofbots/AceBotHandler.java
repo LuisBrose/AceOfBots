@@ -80,7 +80,7 @@ public class AceBotHandler implements IGame {
             return;
         }
 
-        boolean added = game.addPlayer(event.getUser().getId());
+        boolean added = game.addPlayer(event.getUser().getId(), event.getUser().getName());
 
         if (!added) {
             event.reply("already joined or game full").setEphemeral(true).queue();

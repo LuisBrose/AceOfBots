@@ -50,11 +50,11 @@ public class Game {
 
     /**
      * Makes the next move for a player
+     *
      * @param playerId The id of the player
      * @param action   The next move the player should make
-     * @return true if the player was found and the action was performed, false otherwise
      */
-    public Boolean doPlayerAction(String playerId, PlayerStatus action, int amount) {
+    public void doPlayerAction(String playerId, PlayerStatus action, int amount) {
         Player player = players.get(playerId);
         if (player != null && player.getStatus() == PlayerStatus.WAITING) {
             switch (action) {
@@ -63,14 +63,12 @@ public class Game {
                 case ALL_IN -> player.allIn();
                 default -> player.setStatus(PlayerStatus.WAITING);
             }
-            data.setTotalPot(data.getTotalPot()+player.getBet()); // add the player's bet to the total pot
+            data.setTotalPot(data.getTotalPot() + player.popBet()); // add the player's bet to the total pot
 
             synchronized (player) {
                 player.notifyAll();
             }
-            return true;
         }
-        return false;
     }
 
     /**
@@ -143,14 +141,17 @@ public class Game {
                 // Ask the player to make their move asynchronously
                 CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
                     // Ask the front-end to wait for their move todo
+                    System.out.println("Waiting for player " + currentPlayer.getName() + " to make their move");
 
                     // Wait for the player to make their move
-                    synchronized (currentPlayer) {
-                        while (currentPlayer.getStatus() == PlayerStatus.WAITING) {
-                            try {
-                                currentPlayer.wait();
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
+                    if (currentPlayer.getStatus() == PlayerStatus.WAITING) {
+                        synchronized (currentPlayer) {
+                            while (currentPlayer.getStatus() == PlayerStatus.WAITING) {
+                                try {
+                                    currentPlayer.wait();
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                }
                             }
                         }
                     }
@@ -168,7 +169,7 @@ public class Game {
                     numActivePlayers--;
                 } else {
                     // Player has called or raised, update the pot and current bet
-                    data.setTotalPot(newPot+newBet);
+                    data.setTotalPot(newPot + newBet);
                     data.setCurrentBet(newBet);
                     frontEnd.updateGameInfo(data, UpdateType.DEFAULT);
 
@@ -223,17 +224,20 @@ public class Game {
         return players.containsKey(playerId);
     }
 
-    /**Adds a player to the game
+    /**
+     * Adds a player to the game
      *
      * @param playerId the id of the player
      * @return true if player was added
      */
-    public boolean addPlayer(String playerId) {
-        Player player = new Player(playerId);
+    public boolean addPlayer(String playerId, String playerName) {
+        Player player = new Player(playerId, playerName);
         return players.size() < 8 && players.putIfAbsent(playerId, player) == null;
     }
 
-    /**Removes a player from the game
+    /**
+     * Removes a player from the game
+     *
      * @param playerId the id of the player
      * @return true if player was removed
      */

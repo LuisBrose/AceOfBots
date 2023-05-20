@@ -6,6 +6,7 @@ import java.util.concurrent.CompletableFuture;
 public class Player {
     private Card[] hand;
     private final String id;
+    private final String name;
     private PlayerStatus status;
 
     private int balance = 1000;
@@ -23,11 +24,15 @@ public class Player {
         this.status = status;
     }
 
-    public Player(String id) {
+    public Player(String id, String name) {
         this.id = id;
+        this.name = name;
         setStatus(PlayerStatus.WAITING);
     }
 
+    public String getName() {
+        return name;
+    }
 
     public Card[] getHand() {
         return hand;
@@ -47,6 +52,12 @@ public class Player {
 
     public int getBet() {
         return bet;
+    }
+
+    public int popBet() {
+        int temp = bet;
+        bet = 0;
+        return temp;
     }
 
     /**Handles the betting logic and PlayerStatus
