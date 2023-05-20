@@ -6,10 +6,13 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.channel.unions.MessageChannelUnion;
+import net.dv8tion.jda.api.events.interaction.GenericInteractionCreateEvent;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.interactions.InteractionHook;
+import net.dv8tion.jda.api.interactions.callbacks.IMessageEditCallback;
+import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
@@ -24,7 +27,7 @@ public class AceBotHandler implements IGame {
     private Game game = null;
     private String gameMessageId = null;
     private MessageChannelUnion channel = null;
-    private final HashMap<String, SlashCommandInteractionEvent> playerMenus = new HashMap<>();
+    private final HashMap<String, IReplyCallback> playerMenus = new HashMap<>();
     private final HashMap<String, Boolean> playerMenusOnDisplay = new HashMap<>();
     private HashMap<String, Integer> betStorage = new HashMap<>();
 
@@ -45,7 +48,8 @@ public class AceBotHandler implements IGame {
 
         InteractionHook table = event.reply("").setEmbeds(embed).setEphemeral(false)
                 .addActionRow(
-                        Button.success("start", "start"),
+                        Button.success("join", "join"),
+                        Button.primary("start", "start"),
                         Button.primary("settings", "settings")
                 )
                 .complete();
@@ -70,7 +74,7 @@ public class AceBotHandler implements IGame {
         game.start();
     }
 
-    public void addPlayer(SlashCommandInteractionEvent event) {
+    public void addPlayer(IReplyCallback event) {
         if (game == null) {
             event.reply("No game in progress").setEphemeral(true).queue();
             return;
@@ -132,23 +136,16 @@ public class AceBotHandler implements IGame {
                 .queue();
     }
 
-    public void updatePlayerStatus(ButtonInteractionEvent event, PlayerStatus status) {
+    public void updatePlayerStatus(IMessageEditCallback event, PlayerStatus status) {
         int amount = 0;
-        if (status == PlayerStatus.RAISE) amount = betStorage.getOrDefault(event.getUser().getId(),0);
-        game.doPlayerAction(event.getUser().getId(), status,amount);
-        event.getInteraction().deferEdit().queue();
-    }
-
-    public void updatePlayerStatus(ModalInteractionEvent event, PlayerStatus status) {
-        int amount = 0;
-        if (status == PlayerStatus.RAISE) amount = betStorage.getOrDefault(event.getUser().getId(),0);
-        game.doPlayerAction(event.getUser().getId(), status,amount);
-        event.getInteraction().deferEdit().queue();
+        if (status == PlayerStatus.RAISE) amount = betStorage.getOrDefault(event.getUser().getId(), 0);
+        game.doPlayerAction(event.getUser().getId(), status, amount);
+        event.deferEdit().queue();
     }
 
     public void openRaiseMenu(ButtonInteractionEvent event) {
-        TextInputImpl textInput = new TextInputImpl("textInput",TextInputStyle.SHORT,"change your raise amount:",1,8,false,String.valueOf(betStorage.getOrDefault(event.getUser().getId(),0)),"0");
-        Modal modal = Modal.create("modal","\uD83D\uDCB2↑↓").addComponents(ActionRow.of(textInput)).build();
+        TextInputImpl textInput = new TextInputImpl("textInput", TextInputStyle.SHORT, "change your raise amount:", 1, 8, false, String.valueOf(betStorage.getOrDefault(event.getUser().getId(), 0)), "0");
+        Modal modal = Modal.create("modal", "\uD83D\uDCB2↑↓").addComponents(ActionRow.of(textInput)).build();
 
         event.replyModal(modal).queue();
     }
@@ -156,42 +153,52 @@ public class AceBotHandler implements IGame {
     public void submitRaise(ModalInteractionEvent event) {
         try {
             betStorage.put(event.getUser().getId(), Integer.valueOf(event.getValue("textInput").getAsString()));
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             event.reply("invalid input").setEphemeral(true).queue();
             return;
         }
-        updatePlayerStatus(event,PlayerStatus.RAISE);
+        updatePlayerStatus(event, PlayerStatus.RAISE);
     }
 
     @Override
-    public void updateGameInfo(GameStateData data) {
-        File[] images = new File[data.getCommunityCards().length];
-        for (int i = 0; i < data.getCommunityCards().length; i++) {
-            images[i] = data.getCommunityCards()[i].getAsImage();
-        }
-        ImageMerger merger = new ImageMerger(images);
-        merger.mergeImages("community.png", 100);
+    public void updateGameInfo(GameStateData data, UpdateType type) {
+        EmbedBuilder gameInfoBuilder = new EmbedBuilder();
+        EmbedBuilder communityBuilder = new EmbedBuilder();
 
-        FileUpload fileUpload = FileUpload.fromData(new File("community.png")).setName("community.png");
-
-        EmbedBuilder builder = new EmbedBuilder();
-        builder.setTitle("AceOfBots - Poker")
-                .setDescription(data.toString())
-                .setColor(0x15683f)
-                .setThumbnail("https://cdn.discordapp.com/attachments/1096207304946368523/1102299179012857928/74661ed1-54cd-4e3f-9504-1be41e6d3f12.jpg")
-                .setImage("attachment://" + fileUpload.getName());
-
-        MessageEmbed embed = builder.build();
+        MessageEmbed gameInfo, communityCards;
 
         Message message = channel.retrieveMessageById(gameMessageId).complete();
-        message.editMessage(" ").setEmbeds(embed).setComponents().setAttachments(fileUpload).queue();
 
+        gameInfoBuilder.setTitle("AceOfBots - Poker")
+                .setDescription(data.toString())
+                .setColor(0x15683f)
+                .setThumbnail("https://cdn.discordapp.com/attachments/1096207304946368523/1102299179012857928/74661ed1-54cd-4e3f-9504-1be41e6d3f12.jpg");
+
+        gameInfo = gameInfoBuilder.build();
+
+        communityBuilder.setTitle("Community Cards:").setColor(0x15683f);
+
+        if (type == UpdateType.ROUND && data.getCommunityCards()!=null) { // if community cards have changed
+            File[] images = new File[data.getCommunityCards().length];
+            for (int i = 0; i < data.getCommunityCards().length; i++) {
+                images[i] = data.getCommunityCards()[i].getAsImage();
+            }
+            ImageMerger merger = new ImageMerger(images);
+            merger.mergeImages("community.png", 100);
+            FileUpload fileUpload = FileUpload.fromData(new File("community.png")).setName("community.png");
+            communityBuilder.setImage("attachment://" + fileUpload.getName());
+            message.editMessage(" ").setEmbeds(gameInfo, communityBuilder.build()).setAttachments(fileUpload).queue();
+        } else if(message.getEmbeds().size() > 1 && message.getEmbeds().get(1).getImage() != null) { // if community cards are already displayed
+            communityBuilder.setImage(message.getEmbeds().get(1).getImage().getUrl());
+        }
+        communityCards = communityBuilder.build();
+
+        message.editMessage(" ").setEmbeds(gameInfo, communityCards).queue();
     }
 
     @Override
     public void showPlayerHand(String id, Card[] hand) {
-        if(!playerMenusOnDisplay.getOrDefault(id,false))showPlayerMenu(id);
+        if (!playerMenusOnDisplay.getOrDefault(id, false)) showPlayerMenu(id);
     }
 
     @Override

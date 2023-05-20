@@ -86,16 +86,25 @@ public class Game {
             players.values().forEach(player -> frontEnd.showPlayerHand(player.getId(), player.getHand()));
 
             playRound(Round.PREFLOP)
-                    .thenRun(() -> {data.setCommunityCards(Arrays.copyOfRange(communityCards, 0, 3));frontEnd.updateGameInfo(data);})
+                    .thenRun(() -> {
+                        data.setCommunityCards(Arrays.copyOfRange(communityCards, 0, 3));
+                    })
                     .join(); // wait for PREFLOP round to finish
             playRound(Round.FLOP)
-                    .thenRun(() -> {data.setCommunityCards(Arrays.copyOfRange(communityCards, 0, 4));frontEnd.updateGameInfo(data);})
+                    .thenRun(() -> {
+                        data.setCommunityCards(Arrays.copyOfRange(communityCards, 0, 4));
+                    })
                     .join(); // wait for FLOP round to finish
             playRound(Round.TURN)
-                    .thenRun(() -> {data.setCommunityCards(Arrays.copyOfRange(communityCards, 0, 5));frontEnd.updateGameInfo(data);})
+                    .thenRun(() -> {
+                        data.setCommunityCards(Arrays.copyOfRange(communityCards, 0, 5));
+                    })
                     .join(); // wait for TURN round to finish
             playRound(Round.RIVER)
-                    .thenRun(() -> {playRound(Round.SHOWDOWN);System.out.println(determineWinner());nextGame();})
+                    .thenRun(() -> {
+                        playRound(Round.SHOWDOWN);
+                        nextGame();
+                    })
                     .join(); // wait for RIVER and SHOWDOWN rounds to finish
         });
     }
@@ -107,7 +116,8 @@ public class Game {
      * @return A CompletableFuture that completes when the round is over
      */
     public CompletableFuture<Void> playRound(Round round) {
-
+        data.setRound(round);
+        frontEnd.updateGameInfo(data, UpdateType.ROUND);
         resetPlayerStatus();
         return CompletableFuture.runAsync(this::startBettingRound, threadPool);
     }
@@ -160,6 +170,7 @@ public class Game {
                     // Player has called or raised, update the pot and current bet
                     data.setTotalPot(newPot+newBet);
                     data.setCurrentBet(newBet);
+                    frontEnd.updateGameInfo(data, UpdateType.DEFAULT);
 
                     if (newStatus == PlayerStatus.RAISE) {
                         // Player has raised, reset the counter for consecutive checks

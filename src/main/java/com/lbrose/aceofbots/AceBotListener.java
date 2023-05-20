@@ -46,6 +46,7 @@ public class AceBotListener extends ListenerAdapter {
     @Override
     public void onButtonInteraction(ButtonInteractionEvent event) {
         switch (event.getComponentId()) {
+            case "join" -> handler.addPlayer(event);
             case "start" -> handler.startGame(event);
             case "settings" -> event.reply("not implemented yet").queue();
             case "checkCall" -> handler.updatePlayerStatus(event, PlayerStatus.CALL);
