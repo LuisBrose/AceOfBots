@@ -17,6 +17,7 @@ import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
 import net.dv8tion.jda.api.interactions.modals.Modal;
+import net.dv8tion.jda.api.utils.AttachedFile;
 import net.dv8tion.jda.api.utils.FileUpload;
 import net.dv8tion.jda.internal.interactions.component.TextInputImpl;
 
@@ -177,23 +178,28 @@ public class AceBotHandler implements IGame {
         gameInfo = gameInfoBuilder.build();
 
         communityBuilder.setTitle("Community Cards:").setColor(0x15683f);
+        communityCards = communityBuilder.build();
 
         if (type == UpdateType.ROUND && data.getCommunityCards()!=null) { // if community cards have changed
+            message.editMessage(" ").setEmbeds(gameInfo, communityCards).setAttachments(new AttachedFile[0]).queue(); // remove old community cards
+
             File[] images = new File[data.getCommunityCards().length];
             for (int i = 0; i < data.getCommunityCards().length; i++) {
                 images[i] = data.getCommunityCards()[i].getAsImage();
             }
             ImageMerger merger = new ImageMerger(images);
             merger.mergeImages("community.png", 100);
+
             FileUpload fileUpload = FileUpload.fromData(new File("community.png")).setName("community.png");
             communityBuilder.setImage("attachment://" + fileUpload.getName());
-            message.editMessage(" ").setEmbeds(gameInfo, communityBuilder.build()).setAttachments(fileUpload).queue();
+
+            communityCards = communityBuilder.build();
+            message = channel.retrieveMessageById(gameMessageId).complete();
+            message.editMessage(" ").setEmbeds(gameInfo, communityCards).setAttachments(fileUpload).queue();
         } else if(message.getEmbeds().size() > 1 && message.getEmbeds().get(1).getImage() != null) { // if community cards are already displayed
             communityBuilder.setImage(message.getEmbeds().get(1).getImage().getUrl());
+            message.editMessage(" ").setEmbeds(gameInfo, communityBuilder.build()).queue();
         }
-        communityCards = communityBuilder.build();
-
-        message.editMessage(" ").setEmbeds(gameInfo, communityCards).queue();
     }
 
     @Override
