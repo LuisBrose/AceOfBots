@@ -117,6 +117,9 @@ public class Game {
         data.setRound(round);
         frontEnd.updateGameInfo(data, UpdateType.ROUND);
         resetPlayerStatus();
+        for (Player player : players.values()) {
+            frontEnd.updatePlayerInfo(player.getId(), "waiting for other players...");
+        }
         return CompletableFuture.runAsync(this::startBettingRound, threadPool);
     }
 
@@ -137,11 +140,16 @@ public class Game {
             Player currentPlayer = activePlayers.get(currentPlayerIndex);
             PlayerStatus currentStatus = currentPlayer.getStatus();
 
+            // Update the player's info on the front end
+            for (Player player : players.values()) {
+                String playerInfo =
+                        "make your move: "+(data.getCurrentBet()-player.getBet()) + " to call";
+                frontEnd.updatePlayerInfo(player.getId(), playerInfo);
+            }
+
             if (currentStatus == PlayerStatus.WAITING) {
                 // Ask the player to make their move asynchronously
                 CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
-                    // Ask the front-end to wait for their move todo
-                    System.out.println("Waiting for player " + currentPlayer.getName() + " to make their move");
 
                     // Wait for the player to make their move
                     if (currentPlayer.getStatus() == PlayerStatus.WAITING) {

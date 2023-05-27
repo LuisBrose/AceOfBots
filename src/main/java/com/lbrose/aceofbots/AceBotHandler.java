@@ -23,6 +23,7 @@ import net.dv8tion.jda.internal.interactions.component.TextInputImpl;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.Map;
 
 public class AceBotHandler implements IGame {
     private Game game = null;
@@ -165,7 +166,8 @@ public class AceBotHandler implements IGame {
     public void updateGameInfo(GameStateData data, UpdateType type) {
         Message message = channel.retrieveMessageById(gameMessageId).complete();
 
-        if(type == UpdateType.ROUND)message.editMessage(" ").setAttachments(new AttachedFile[0]).queue(); // remove old community cards
+        if (type == UpdateType.ROUND)
+            message.editMessage(" ").setAttachments(new AttachedFile[0]).queue(); // remove old community cards
 
         EmbedBuilder gameInfoBuilder = new EmbedBuilder();
         EmbedBuilder communityBuilder = new EmbedBuilder();
@@ -181,7 +183,7 @@ public class AceBotHandler implements IGame {
 
         communityBuilder.setTitle("Community Cards:").setColor(0x15683f);
 
-        if (type == UpdateType.ROUND && data.getCommunityCards()!=null) { // if community cards have changed
+        if (type == UpdateType.ROUND && data.getCommunityCards() != null) { // if community cards have changed
             File[] images = new File[data.getCommunityCards().length];
             for (int i = 0; i < data.getCommunityCards().length; i++) {
                 images[i] = data.getCommunityCards()[i].getAsImage();
@@ -195,7 +197,7 @@ public class AceBotHandler implements IGame {
             communityCards = communityBuilder.build();
             message.editMessage(" ").setEmbeds(gameInfo, communityCards).setAttachments(fileUpload).queue();
             return;
-        } else if(message.getEmbeds().size() > 1 && message.getEmbeds().get(1).getImage() != null) { // if community cards are already displayed
+        } else if (message.getEmbeds().size() > 1 && message.getEmbeds().get(1).getImage() != null && data.getCommunityCards() != null) { // if community cards are already displayed
             communityBuilder.setImage(message.getEmbeds().get(1).getImage().getUrl());
             message.editMessage(" ").setEmbeds(gameInfo, communityBuilder.build()).queue();
             return;
@@ -210,8 +212,9 @@ public class AceBotHandler implements IGame {
     }
 
     @Override
-    public void requestPlayerMove(String id, int i, boolean b) {
-
+    public void updatePlayerInfo(String playerId, String info) {
+        if (!playerMenusOnDisplay.get(playerId)) return;
+        playerMenus.get(playerId).getHook().editOriginal(info).queue();
     }
 
     @Override
