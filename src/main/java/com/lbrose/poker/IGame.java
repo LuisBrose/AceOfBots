@@ -7,7 +7,7 @@ public interface IGame {
      * @param type The type of update to send
      */
     void updateGameInfo(GameStateData data, UpdateType type);
-    void updatePlayerInfo(String playerId, String info);
+    void updatePlayerInfo(String playerId, String info, boolean isTurn);
 
     void showPlayerHand(String id, Card[] hand);
     void restartGame();

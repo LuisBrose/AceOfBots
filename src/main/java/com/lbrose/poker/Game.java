@@ -133,7 +133,7 @@ public class Game {
             PlayerStatus currentStatus = currentPlayer.getStatus();
 
             for (Player player : players.values()) {
-                frontEnd.updatePlayerInfo(player.getId(), "waiting for other players...");
+                frontEnd.updatePlayerInfo(player.getId(), "waiting for other players...", false);
             }
 
             if (currentStatus == PlayerStatus.WAITING) {
@@ -145,7 +145,7 @@ public class Game {
                         synchronized (currentPlayer) {
                             while (currentPlayer.getStatus() == PlayerStatus.WAITING) {
                                 String playerInfo = "make your move: "+(data.getCurrentBet()-currentPlayer.getBet()) + " to call";
-                                frontEnd.updatePlayerInfo(currentPlayer.getId(), playerInfo);
+                                frontEnd.updatePlayerInfo(currentPlayer.getId(), playerInfo, true);
                                 try {
                                     currentPlayer.wait();
                                 } catch (InterruptedException e) {
