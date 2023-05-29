@@ -23,7 +23,6 @@ import net.dv8tion.jda.internal.interactions.component.TextInputImpl;
 
 import java.io.File;
 import java.util.HashMap;
-import java.util.Map;
 
 public class AceBotHandler implements IGame {
     private Game game = null;
@@ -73,7 +72,7 @@ public class AceBotHandler implements IGame {
         message.editMessage(" ").setEmbeds(embed).setComponents().queue();
         event.getInteraction().deferEdit().queue();
 
-        game.start();
+        game.start(true);
     }
 
     public void addPlayer(IReplyCallback event) {

@@ -105,7 +105,7 @@ public class Player {
 
     @Override
     public String toString() {
-        return "Player: " + id + " " + Arrays.toString(hand) + " " + status + " " + balance + " " + bet;
+        return "Player: " + name + " " + Arrays.toString(hand) + " " + status + " " + balance + " " + bet;
     }
 
 }

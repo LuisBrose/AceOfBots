@@ -1,18 +1,14 @@
 package com.lbrose.poker;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class Game {
     private final IGame frontEnd;
 
-    private final ConcurrentHashMap<String, Player> players = new ConcurrentHashMap<>();
+    private final Hashtable<String, Player> players = new Hashtable<>();
     private Deck deck;
     private Card[] communityCards;
 
@@ -24,13 +20,9 @@ public class Game {
     public Game(IGame frontEnd) {
         this.deck = new Deck();
         this.frontEnd = frontEnd;
-
-        List<Player> shuffledPlayers = new ArrayList<>(players.values());
-        Collections.shuffle(shuffledPlayers);
-        players.replaceAll((id, player) -> shuffledPlayers.remove(0));
     }
 
-    public ConcurrentHashMap<String, Player> getPlayers() {
+    public Hashtable<String, Player> getPlayers() {
         return players;
     }
 
@@ -67,6 +59,7 @@ public class Game {
 
             synchronized (player) {
                 player.notifyAll();
+                System.out.println(player.getName());
             }
         }
     }
@@ -74,7 +67,9 @@ public class Game {
     /**
      * Starts the game and controls the flow of the game
      */
-    public void start() {
+    public void start(boolean newGame) {
+        if(newGame)dealer = getRandomDealerIndex();
+
         threadPool.execute(() -> {
             data = new GameStateData();
             deck = new Deck();
@@ -87,7 +82,7 @@ public class Game {
                     .thenRun(() -> {
                         data.setCommunityCards(Arrays.copyOfRange(communityCards, 0, 3));
                     })
-                    .join(); // wait for PREFLOP round to finish
+                    .join(); // wait for PRE-FLOP round to finish
             playRound(Round.FLOP)
                     .thenRun(() -> {
                         data.setCommunityCards(Arrays.copyOfRange(communityCards, 0, 4));
@@ -117,9 +112,6 @@ public class Game {
         data.setRound(round);
         frontEnd.updateGameInfo(data, UpdateType.ROUND);
         resetPlayerStatus();
-        for (Player player : players.values()) {
-            frontEnd.updatePlayerInfo(player.getId(), "waiting for other players...");
-        }
         return CompletableFuture.runAsync(this::startBettingRound, threadPool);
     }
 
@@ -140,11 +132,8 @@ public class Game {
             Player currentPlayer = activePlayers.get(currentPlayerIndex);
             PlayerStatus currentStatus = currentPlayer.getStatus();
 
-            // Update the player's info on the front end
             for (Player player : players.values()) {
-                String playerInfo =
-                        "make your move: "+(data.getCurrentBet()-player.getBet()) + " to call";
-                frontEnd.updatePlayerInfo(player.getId(), playerInfo);
+                frontEnd.updatePlayerInfo(player.getId(), "waiting for other players...");
             }
 
             if (currentStatus == PlayerStatus.WAITING) {
@@ -155,6 +144,8 @@ public class Game {
                     if (currentPlayer.getStatus() == PlayerStatus.WAITING) {
                         synchronized (currentPlayer) {
                             while (currentPlayer.getStatus() == PlayerStatus.WAITING) {
+                                String playerInfo = "make your move: "+(data.getCurrentBet()-currentPlayer.getBet()) + " to call";
+                                frontEnd.updatePlayerInfo(currentPlayer.getId(), playerInfo);
                                 try {
                                     currentPlayer.wait();
                                 } catch (InterruptedException e) {
@@ -219,7 +210,7 @@ public class Game {
     public void nextGame() {
         dealer = (dealer + 1) % players.size();
         frontEnd.restartGame();
-        start();
+        start(false);
     }
 
     /**
@@ -251,5 +242,9 @@ public class Game {
      */
     public Boolean removePlayer(String playerId) {
         return players.remove(playerId) != null;
+    }
+
+    public int getRandomDealerIndex() {
+        return (int) (Math.random() * players.size());
     }
 }
