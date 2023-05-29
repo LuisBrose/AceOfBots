@@ -128,12 +128,11 @@ public class AceBotHandler implements IGame {
 
         playerMenusOnDisplay.put(playerId, true);
         playerMenus.get(playerId).getHook().sendMessage("").addEmbeds(embed).addFiles(fileUpload)
-                .addActionRow(
-                        Button.primary("checkCall", "check/call"),
-                        Button.danger("fold", "fold"),
-                        Button.success("raise", "raise"),
-                        Button.danger("allIn", "all in")
-                )
+                .setActionRow(
+                        Button.primary("checkCall", "check/call").asEnabled(),
+                        Button.danger("fold", "fold").asDisabled(),
+                        Button.success("raise", "raise").asDisabled(),
+                        Button.danger("allIn", "all in").asDisabled())
                 .queue();
     }
 
@@ -211,9 +210,14 @@ public class AceBotHandler implements IGame {
     }
 
     @Override
-    public void updatePlayerInfo(String playerId, String info) {
+    public void updatePlayerInfo(String playerId, String info, boolean isTurn) {
         if (!playerMenusOnDisplay.get(playerId)) return;
-        playerMenus.get(playerId).getHook().editOriginal(info).queue();
+        playerMenus.get(playerId).getHook().editOriginal(info).setActionRow(
+                        Button.primary("checkCall", "check/call").withDisabled(!isTurn),
+                        Button.danger("fold", "fold").withDisabled(!isTurn),
+                        Button.success("raise", "raise").withDisabled(!isTurn),
+                        Button.danger("allIn", "all in").withDisabled(!isTurn))
+                .queue();
     }
 
     @Override
