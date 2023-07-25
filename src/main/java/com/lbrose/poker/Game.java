@@ -68,7 +68,7 @@ public class Game {
      * Starts the game and controls the flow of the game
      */
     public void start(boolean newGame) {
-        if(newGame)dealer = getRandomDealerIndex();
+        if (newGame) dealer = getRandomDealerIndex();
 
         threadPool.execute(() -> {
             data = new GameStateData();
@@ -144,7 +144,7 @@ public class Game {
                     if (currentPlayer.getStatus() == PlayerStatus.WAITING) {
                         synchronized (currentPlayer) {
                             while (currentPlayer.getStatus() == PlayerStatus.WAITING) {
-                                String playerInfo = "make your move: "+(data.getCurrentBet()-currentPlayer.getBet()) + " to call";
+                                String playerInfo = "make your move: " + (data.getCurrentBet() - currentPlayer.getBet()) + " to call";
                                 frontEnd.updatePlayerInfo(currentPlayer.getId(), playerInfo, true);
                                 try {
                                     currentPlayer.wait();
@@ -184,7 +184,7 @@ public class Game {
             }
 
             // Move on to the next player
-            currentPlayerIndex = (currentPlayerIndex + 1) % numActivePlayers;
+            if (numActivePlayers != 0) currentPlayerIndex = (currentPlayerIndex + 1) % numActivePlayers;
         }
     }
 
