@@ -1,15 +1,15 @@
 # AceOfBots
-###by [Luis Brose](https://github.com/LuisBrose)
+### by [Luis Brose](https://github.com/LuisBrose)
 AceOfBots is a Discord Bot, which can be used for playing Texas hold 'em in a text channel with up to eight people.
 ## Gameplay
 ...
 ## Setup
 ...
 ### Commands
-#/play
+#### /play
 to start a new Game of Poker
-#/join
+#### /join
 you join the current Poker match
-#/leave
+#### /leave
 you leave the current Poker match
 ...
