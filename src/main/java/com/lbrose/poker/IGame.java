@@ -9,6 +9,6 @@ public interface IGame {
     void updateGameInfo(GameStateData data, UpdateType type);
     void updatePlayerInfo(String playerId, String info, boolean isTurn);
 
-    void showPlayerHand(String id, Card[] hand);
+    void showPlayerHand(String id, boolean edit);
     void restartGame();
 }

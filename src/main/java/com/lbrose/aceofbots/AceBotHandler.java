@@ -107,7 +107,7 @@ public class AceBotHandler implements IGame {
         event.reply("you left the game").setEphemeral(true).queue();
     }
 
-    public void showPlayerMenu(String playerId) {
+    public void showPlayerMenu(String playerId, boolean edit) {
         Card[] playerHand = game.getPlayer(playerId).getHand();
 
         File[] images = new File[playerHand.length];
@@ -127,6 +127,11 @@ public class AceBotHandler implements IGame {
         MessageEmbed embed = builder.build();
 
         playerMenusOnDisplay.put(playerId, true);
+        if (edit) {
+            playerMenus.get(playerId).getHook().editOriginalAttachments(fileUpload).queue();
+            System.out.println("edit");
+            return;
+        }
         playerMenus.get(playerId).getHook().sendMessage("").addEmbeds(embed).addFiles(fileUpload)
                 .setActionRow(
                         Button.primary("checkCall", "check/call").asDisabled(),
@@ -205,8 +210,8 @@ public class AceBotHandler implements IGame {
     }
 
     @Override
-    public void showPlayerHand(String id, Card[] hand) {
-        if (!playerMenusOnDisplay.getOrDefault(id, false)) showPlayerMenu(id);
+    public void showPlayerHand(String id, boolean edit) {
+        showPlayerMenu(id, edit);
     }
 
     @Override

@@ -76,7 +76,7 @@ public class Game {
             players.values().forEach(player -> player.setHand(deck.drawCard(), deck.drawCard()));
             communityCards = deck.getCommunityCards();
 
-            players.values().forEach(player -> frontEnd.showPlayerHand(player.getId(), player.getHand()));
+            players.values().forEach(player -> frontEnd.showPlayerHand(player.getId(), !newGame));
 
             playRound(Round.PREFLOP)
                     .thenRun(() -> {
