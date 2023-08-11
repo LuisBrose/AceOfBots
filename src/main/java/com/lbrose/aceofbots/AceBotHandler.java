@@ -183,7 +183,7 @@ public class AceBotHandler implements IGame {
 
         communityBuilder.setTitle("Community Cards:").setColor(0x15683f);
 
-        if (type == UpdateType.ROUND && data.getCommunityCards() != null) { // if community cards have changed
+        if (type == UpdateType.ROUND && data.getCommunityCards()s != null) { // if community cards have changed
             File[] images = new File[data.getCommunityCards().length];
             for (int i = 0; i < data.getCommunityCards().length; i++) {
                 images[i] = data.getCommunityCards()[i].getAsImage();
