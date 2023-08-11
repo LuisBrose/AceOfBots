@@ -129,7 +129,6 @@ public class AceBotHandler implements IGame {
         playerMenusOnDisplay.put(playerId, true);
         if (edit) {
             playerMenus.get(playerId).getHook().editOriginalAttachments(fileUpload).queue();
-            System.out.println("edit");
             return;
         }
         playerMenus.get(playerId).getHook().sendMessage("").addEmbeds(embed).addFiles(fileUpload)
@@ -168,9 +167,7 @@ public class AceBotHandler implements IGame {
     @Override
     public void updateGameInfo(GameStateData data, UpdateType type) {
         Message message = channel.retrieveMessageById(gameMessageId).complete();
-
-        if (type == UpdateType.ROUND)
-            message.editMessage(" ").setAttachments(new AttachedFile[0]).queue(); // remove old community cards
+        message.editMessage(" ").setAttachments(new AttachedFile[0]).queue(); // remove old community cards
 
         EmbedBuilder gameInfoBuilder = new EmbedBuilder();
         EmbedBuilder communityBuilder = new EmbedBuilder();
@@ -186,7 +183,7 @@ public class AceBotHandler implements IGame {
 
         communityBuilder.setTitle("Community Cards:").setColor(0x15683f);
 
-        if (type == UpdateType.ROUND && data.getCommunityCards() != null) { // if community cards have changed
+        if (type == UpdateType.ROUND && data.getCommunityCards()s != null) { // if community cards have changed
             File[] images = new File[data.getCommunityCards().length];
             for (int i = 0; i < data.getCommunityCards().length; i++) {
                 images[i] = data.getCommunityCards()[i].getAsImage();
