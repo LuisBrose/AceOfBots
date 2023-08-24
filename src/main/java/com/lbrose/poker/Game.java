@@ -55,7 +55,9 @@ public class Game {
                 case ALL_IN -> player.allIn();
                 default -> player.setStatus(PlayerStatus.WAITING);
             }
-            data.setTotalPot(data.getTotalPot() + player.popBet()); // add the player's bet to the total pot
+            data.setTotalPot(data.getTotalPot() + player.getBet()); // add the player's bet to the total pot
+            data.setCurrentBet(player.getBet()); // update the current bet
+            frontEnd.updateGameInfo(data, UpdateType.DEFAULT);
 
             synchronized (player) {
                 player.notifyAll();
@@ -125,7 +127,6 @@ public class Game {
         int currentPlayerIndex = dealer; // The index of the player whose turn it is
 
         // Variables to keep track of when the betting round is over
-        int lastRaiseIndex = currentPlayerIndex;
         int numConsecutiveChecks = 0;
 
         while (numActivePlayers > 0 && numConsecutiveChecks < numActivePlayers) { // !!!CHANGE NUM ACTIVE BACK TO : numActivePlayers > 1
@@ -159,22 +160,14 @@ public class Game {
 
                 // Process the player's move and update the pot and current bet
                 PlayerStatus newStatus = currentPlayer.getStatus();
-                int newBet = currentPlayer.getBet();
-                int newPot = data.getTotalPot() + currentPlayer.getBet();
 
                 if (newStatus == PlayerStatus.FOLD) {
                     // Player has folded, remove them from the active players list
                     activePlayers.remove(currentPlayer);
                     numActivePlayers--;
                 } else {
-                    // Player has called or raised, update the pot and current bet
-                    data.setTotalPot(newPot + newBet);
-                    data.setCurrentBet(newBet);
-                    frontEnd.updateGameInfo(data, UpdateType.DEFAULT);
-
                     if (newStatus == PlayerStatus.RAISE) {
                         // Player has raised, reset the counter for consecutive checks
-                        lastRaiseIndex = currentPlayerIndex;
                         numConsecutiveChecks = 0;
                     } else if (newStatus == PlayerStatus.CALL || newStatus == PlayerStatus.CHECK) {
                         // Player has checked, update the counter for consecutive checks

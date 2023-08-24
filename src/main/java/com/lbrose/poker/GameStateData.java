@@ -26,7 +26,7 @@ public class GameStateData {
     }
 
     public void setCurrentBet(int currentBet) {
-        this.currentBet = currentBet;
+        if(currentBet>this.currentBet)this.currentBet = currentBet;
     }
 
     public Round getRound() {
