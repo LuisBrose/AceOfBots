@@ -145,7 +145,7 @@ public class Game {
                     if (currentPlayer.getStatus() == PlayerStatus.WAITING) {
                         synchronized (currentPlayer) {
                             while (currentPlayer.getStatus() == PlayerStatus.WAITING) {
-                                String playerInfo = "make your move: " + (data.getCurrentBet() - currentPlayer.getBet()) + " to call";
+                                String playerInfo = "### make your move: " + (data.getCurrentBet() - currentPlayer.getBet()) + " to call";
                                 frontEnd.updatePlayerInfo(currentPlayer.getId(), playerInfo, true);
                                 try {
                                     currentPlayer.wait();

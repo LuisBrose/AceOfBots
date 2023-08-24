@@ -63,9 +63,9 @@ public class GameStateData {
 
     @Override
     public String toString() {
-        return "info:\n" +
-                "totalPot=" + totalPot +
-                "\ncurrentBet=" + currentBet +
-                "\nround=" + round;
+        return "# info:\n" +
+                "### totalPot=" + totalPot +
+                "\n### currentBet=" + currentBet +
+                "\n### round=" + round;
     }
 }
