@@ -10,7 +10,7 @@ public class Player {
     private PlayerStatus status;
 
     private int balance = 1000;
-    private int bet = 0;
+    private int bet,totalBet = 0;
 
     public void setHand(Card card1, Card card2) {
         this.hand = new Card[]{card1, card2};
@@ -51,13 +51,14 @@ public class Player {
     }
 
     public int getBet() {
-        return bet;
+        totalBet += bet;
+        int temp = bet;
+        bet=0;
+        return temp;
     }
 
-    public int popBet() {
-        int temp = bet;
-        bet = 0;
-        return temp;
+    public int getTotalBet() {
+        return totalBet;
     }
 
     /**Handles the betting logic and PlayerStatus
@@ -65,7 +66,7 @@ public class Player {
      * @param raiseAmount the amount the player wants to raise (can be 0 for check or call)
      */
     public void checkCallRaise(int tableBet, int raiseAmount) {
-        int callAmount = tableBet + raiseAmount - bet;
+        int callAmount = tableBet + raiseAmount - totalBet;
 
         if(callAmount == 0) { // check
             this.status = PlayerStatus.CHECK;

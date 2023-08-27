@@ -56,7 +56,7 @@ public class Game {
                 default -> player.setStatus(PlayerStatus.WAITING);
             }
             data.setTotalPot(data.getTotalPot() + player.getBet()); // add the player's bet to the total pot
-            data.setCurrentBet(player.getBet()); // update the current bet
+            data.setCurrentBet(player.getTotalBet()); // update the current bet
             frontEnd.updateGameInfo(data, UpdateType.DEFAULT);
 
             synchronized (player) {
@@ -145,7 +145,7 @@ public class Game {
                     if (currentPlayer.getStatus() == PlayerStatus.WAITING) {
                         synchronized (currentPlayer) {
                             while (currentPlayer.getStatus() == PlayerStatus.WAITING) {
-                                String playerInfo = "### make your move: " + (data.getCurrentBet() - currentPlayer.getBet()) + " to call";
+                                String playerInfo = "make your move: " + (data.getCurrentBet() - currentPlayer.getTotalBet()) + " to call";
                                 frontEnd.updatePlayerInfo(currentPlayer.getId(), playerInfo, true);
                                 try {
                                     currentPlayer.wait();
@@ -178,6 +178,7 @@ public class Game {
 
             // Move on to the next player
             if (numActivePlayers != 0) currentPlayerIndex = (currentPlayerIndex + 1) % numActivePlayers;
+            if(currentPlayerIndex == dealer) resetPlayerStatus();
         }
     }
 
