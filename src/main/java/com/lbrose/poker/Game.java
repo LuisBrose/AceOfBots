@@ -168,7 +168,8 @@ public class Game {
                 } else {
                     if (newStatus == PlayerStatus.RAISE) {
                         // Player has raised, reset the counter for consecutive checks
-                        numConsecutiveChecks = 0;
+                        numConsecutiveChecks=0;
+                        numConsecutiveChecks++;
                     } else if (newStatus == PlayerStatus.CALL || newStatus == PlayerStatus.CHECK) {
                         // Player has checked, update the counter for consecutive checks
                         numConsecutiveChecks++;

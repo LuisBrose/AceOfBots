@@ -1,7 +1,6 @@
 package com.lbrose.poker;
 
 import java.util.Arrays;
-import java.util.concurrent.CompletableFuture;
 
 public class Player {
     private Card[] hand;
@@ -81,7 +80,7 @@ public class Player {
         if(raiseAmount>0)this.status = PlayerStatus.RAISE; // determine between call and raise
         else this.status = PlayerStatus.CALL;
 
-        this.bet = tableBet+raiseAmount;
+        this.bet = callAmount;
         this.balance -= callAmount;
     }
 
